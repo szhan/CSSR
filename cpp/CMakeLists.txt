@@ -18,7 +18,7 @@ set(SOURCE_FILES
     AllStates.cpp
     Test.cpp
     TransTable.cpp
-    )
+    Common.h)
 
 add_executable(CSSR ${SOURCE_FILES})
 
