@@ -15,22 +15,9 @@
 
 class HashTable2 {
 protected:
-    std::unordered_map<char*, int> entries = {};
-
-    struct HashTable2Entry {
-        char *m_string;
-        int m_index;
-        HashTable2Entry *m_nextPtr;
-    };
-
-    HashTable2Entry *m_data[HASHSIZE2];
-
-    int Hash(ulong key);
-
-    ulong CreateKey(char *string);
+    std::unordered_map<char*, int> entries;
 
 public:
-
     HashTable2();
 
     ~HashTable2();
@@ -38,8 +25,6 @@ public:
     void Insert(char *string, int index);
 
     int WhichIndex(char *string);
-
-    void Print();
 };
 
 #endif

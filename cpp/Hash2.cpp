@@ -1,72 +1,25 @@
-///////////////////////////////////////////////////////////////////////////////
-// Title		:	Hash2
-// Date			:	March 20, 2002
-// Author		:	Kristina Klinkner
-// Description	:	creates a hash table of symbols and their index for use with
-//				    CSSR
-///////////////////////////////////////////////////////////////////////////////
-
-/////////////////////////////////////////////////////////////////////////////
-//
-//    Copyright (C) 2002 Kristina Klinkner
-//    This file is part of CSSR
-//
-//    CSSR is free software; you can redistribute it and/or modify
-//    it under the terms of the GNU General Public License as published by
-//    the Free Software Foundation; either version 2 of the License, or
-//    (at your option) any later version.
-//
-//    CSSR is distributed in the hope that it will be useful,
-//    but WITHOUT ANY WARRANTY; without even the implied warranty of
-//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//    GNU General Public License for more details.
-//
-//    You should have received a copy of the GNU General Public License
-//    along with CSSR; if not, write to the Free Software
-//    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-//////////////////////////////////////////////////////////////////////////////
 #include "Hash2.h"
 
-///////////////////////////////////////////////////////////////////////////////
-
+/**
+ * Hash2 creates a hash table of symbols and their index for use with CSSR
+ */
 HashTable2::HashTable2() {
-  for (int i = 0; i < HASHSIZE2; i++) {
-    m_data[i] = NULL;
-  }
+  entries = unordered_map();
 }
-
 
 HashTable2::~HashTable2() {
-  for (int i = 0; i < HASHSIZE2; i++) {
-    if (m_data[i] != NULL) {
-      HashTable2Entry *temp1;
-      HashTable2Entry *temp2 = m_data[i]->m_nextPtr;
-      while (temp2 != NULL) {
-        temp1 = temp2;
-        temp2 = temp2->m_nextPtr;
-        //delete hash entries in list
-        if (temp1->m_string) {
-          delete temp1->m_string;
-        }
-
-        delete temp1;
-        temp1 = NULL;
-      }
-      //delete node for main hash entry
-      delete m_data[i];
-      m_data[i] = NULL;
-    }
-  }
+  delete entries;
 }
 
-////////////////////////////////////////////////////////////////
-//Function: HashTable2::Insert
-//Purpose: inserts a new element in the hash table, if there is
-//         already an element at the appropriate index, puts new
-//         element at the front of the list.
-//In parameter: new string and index
-////////////////////////////////////////////////////////////////
+/**
+ * Inserts a new element in the hash table, if there is already an element at
+ * the appropriate index, puts new element at the front of the list.
+ *
+ * Exits if the string is NULL.
+ *
+ * @param string      The string to insert into the hashtable.
+ * @param index       The int of the index to insert.
+ */
 void HashTable2::Insert(char *string, int index) {
   if (string == NULL) {
     cerr << "Cannot insert null pointer into Hash Table\n";
@@ -82,13 +35,14 @@ void HashTable2::Insert(char *string, int index) {
 }
 
 
-/////////////////////////////////////////////////////////////////
-//Function: HashTable2::WhichIndex
-//Purpose: checks to see which state string is in; returns
-//         a pointer to the state
-//In parameter: string to check
-//Return value: pointer to address of appropriate state
-////////////////////////////////////////////////////////////////
+/**
+ * Checks to see which state string is in.
+ *
+ * Exits if the string is invalid or if the entry cannot be found.
+ *
+ * @param string      The string to find in the hashtable.
+ * @return            The integer which points to the appropriate state.
+ */
 int HashTable2::WhichIndex(char *string) {
   if ((string != NULL) && (string[0] == '\0')) {
     cerr << "Cannot check matching state for empty string\n";
