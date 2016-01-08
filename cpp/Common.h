@@ -17,6 +17,7 @@
 #include <iomanip>
 #include <string.h>
 #include <ctype.h>
+#include <sstream>
 
 #include ".depends/easylogging++.h"
 

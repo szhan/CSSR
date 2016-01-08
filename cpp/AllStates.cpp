@@ -30,8 +30,6 @@
 
 #include "AllStates.h"
 
-INITIALIZE_EASYLOGGINGPP
-
 ///////////////////////////////////////////////////////////////////////////
 // Function: AllStates::PrintOut
 // Purpose: prints out all states in array to a file
@@ -236,7 +234,9 @@ void AllStates::CalcNewDist(int length, ParseTree &parsetree) {
 
     //if there were no matches make new state
     if (!match) {
-      cout << "Rejecting null hypothesis" << endl;
+      std::string stateStr (removalString);
+      LOG(DEBUG) << "Creating new state with: " + stateStr << endl;
+
       //insert new string
       Insert(list[i], m_arraySize);
 
@@ -369,14 +369,14 @@ bool AllStates::RePartition(bool match, char *removalString,
     //if not significantly different from state,
     //add to that state
     if (sigLevel >= m_sigLevel) {
-      std::string stateStr (element->getString());
-      LOG(DEBUG) << "Creating new state with: " + stateStr << endl;
       match = true;
       Insert(element, q);
       //re-calculate probability distribution
       m_StateArray[q]->CalcCurrentDist();
     }
   }
+  LOG_IF(!match, DEBUG) << "Alternate Hypothesis complete" << endl;
+
   return match;
 }
 
@@ -1246,7 +1246,7 @@ void AllStates::GetStateDistsMulti(ParseTree &parsetree, char input[],
 
   //open output file, if unsuccessful set boolean return value
   if (!outData) {
-    cerr << " the state series output file cannot be opened " << endl;
+    LOG(ERROR) << " the state series output file cannot be opened " << endl;
     exit(1);
   }
     //otherwise output data
@@ -1366,7 +1366,7 @@ bool AllStates::CheckSynchError(int index, int state, char *&synchString0,
   if (diff > 0) {
     //if state is still null here, something is VERY wrong
     if (state == NULL_STATE && ((index >= dataSize - 1) || (!isMulti))) {
-      cerr << "\nError: Could not synchronize, cannot use this data. "
+      LOG(ERROR) << "\nError: Could not synchronize, cannot use this data. "
       << endl
       << "AllStates::GetStateDistsMulti\n" << endl
       << "Note: For some reason this program cannot synchronize to a"
@@ -1543,8 +1543,10 @@ double AllStates::Compare(int k, double newDist[], int newDistCount) {
   double * currentDist = m_StateArray[k]->getCurrentDist();
   int distCount = m_StateArray[k]->getCount();
 
-  cout << endl << endl << "AllStates List Size: " << to_string(m_arraySize) << endl;
-  cout << "Have distribution information only." << endl;
+  cout << endl;
+  LOG(DEBUG) << "===========================================";
+  LOG(DEBUG) << "AllStates List Size: " << to_string(m_arraySize) << endl;
+  LOG(DEBUG) << "Have distribution information only." << endl;
   return m_test->RunTest(currentDist, distCount, newDist, newDistCount, m_distSize);
 }
 
@@ -1559,11 +1561,11 @@ double AllStates::Compare(int k, double newDist[], int newDistCount) {
 // Post-Cond: sig level is  known
 //////////////////////////////////////////////////////////////////////////
 double AllStates::Compare(State *state, double newDist[], int count) {
-  cout << endl << endl << "AllStates List Size: " << to_string(m_arraySize) << endl;
-  cout << "Have state information:" << endl;
-  cout << "===========================================" << endl;
-  state->PrintStringList(&cout, m_parseTree->getAlpha());
-  cout << "===========================================" << endl;
+  cout << endl;
+  LOG(DEBUG) << "===========================================";
+  LOG(DEBUG) << "AllStates List Size: " << to_string(m_arraySize);
+  LOG(DEBUG) << "Have state information:";
+  state->logState(m_parseTree->getAlpha());
   return m_test->RunTest(state->getCurrentDist(), state->getCount(), newDist, count, m_distSize);
 }
 

@@ -54,7 +54,7 @@ class Test {
 
     double ProbKS(double alam);
 
-    void PrintDistribution(double dist[]);
+    std::string printDistribution(std::string label, double *dist);
 
   public:
     Test(bool isChi) { if (isChi) { m_type = CHIS; } else { m_type = KS; }}

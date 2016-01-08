@@ -167,25 +167,24 @@ void Test::nerror(const char error_text[]) {
   cerr << error_text << endl;
   exit(1);
 }
-void Test::PrintDistribution(double dist[]) {
+std::string Test::printDistribution(std::string label, double *dist) {
+  std::string memo = label + ": ";
   int i;
   for (i = 0; i < (sizeof(dist)/ sizeof(double)) + 1; i++) {
-    printf("%.6f", dist[i]);
-    cout << " ";
+    std::ostringstream strs;
+    strs << dist[i];
+    memo += strs.str() + "\t";
   }
-  cout << endl;
+  return memo;
 }
 
 
 double Test::RunTest(double dist1[], int count1, double dist2[], int count2, int distSize) {
   string stats = "Running test with distSize of " + to_string(distSize) +
                  ", Count1: " + to_string(count1) + ", Count2: " + to_string(count2);
-  cout << stats << endl;
-  cout << "dist1: ";
-  PrintDistribution(dist1);
-  cout << "dist2: ";
-  PrintDistribution(dist2);
-  cout << endl;
+  LOG(DEBUG) << stats;
+  LOG(DEBUG) << printDistribution("dist1", dist1);
+  LOG(DEBUG) << printDistribution("dist2", dist2);
 
   if (m_type == KS) {
     return RunKSTest(dist1, count1, dist2, count2, distSize);
@@ -194,7 +193,7 @@ double Test::RunTest(double dist1[], int count1, double dist2[], int count2, int
     return RunChiTest(dist1, count1, dist2, count2, distSize);
   }
   else {
-    cerr << "No type of statistical test set" << endl;
+    LOG(ERROR) << "No type of statistical test set";
     exit(1);
   }
 }

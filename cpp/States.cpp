@@ -204,48 +204,60 @@ State::~State() {
 }
 
 
-///////////////////////////////////////////////////////////////////////////
-//Function: PrintStringList
-//Purpose: prints out linked list of strings stored in state
-///////////////////////////////////////////////////////////////////////////
-void State::PrintStringList(ostream *outData, char *alpha) {
+std::string State::printStringList(char *alpha){
+  std::string serialization = "";
   StringElem *temp1 = m_StringList;
   char null[6] = "NULL\0";
 
   if (temp1 != NULL) {
     //print out strings
     while (temp1 != m_listTail) {
-      *outData << temp1->m_string << endl;
+      serialization += temp1->toString() + "\n";
       temp1 = temp1->m_nextPtr;
     }
-    *outData << temp1->m_string << endl;
-    *outData << "distribution: ";
+    serialization += temp1->toString() + "\n";
+    serialization += "distribution: ";
 
     //print out distributions and transitions
     for (int i = 0; i < m_distributionSize; i++) {
-      *outData << "P(" << alpha[i] << ") = " << m_currentDist[i] << "\t";
+      std::ostringstream strs;
+      strs << m_currentDist[i];
+      serialization += "P(" + to_string(alpha[i]) + ") = " + strs.str() + "\t";
     }
-    *outData << endl << "transitions: ";
+    serialization += "\ntransitions: ";
 
     for (int k = 0; k < m_distributionSize; k++) {
-      if (m_transitions[k] == -1) {
-        *outData << "T(" << alpha[k] << ") = " << null << "\t";
-      }
-      else {
-        *outData << "T(" << alpha[k] << ") = " << m_transitions[k] << "\t";
-      }
+      serialization += "T(" + to_string(alpha[k]) + ") = " + (m_transitions[k] == -1 ? null : to_string(m_transitions[k]))+ "\t";
     }
 
-    *outData << endl;
-    *outData << "P(state): " << m_frequency;
+    serialization += "\n";
+    std::ostringstream freqStr;
+    freqStr << m_frequency;
+    serialization += "P(state): <CURRENTLY WRONG> " + freqStr.str();
   }
   else {
-    *outData << "empty state" << endl;
+    serialization += "empty state\n";
   }
 
-  *outData << endl << endl;
+  serialization += "\n\n";
+  return serialization;
+}
+///////////////////////////////////////////////////////////////////////////
+//Function: PrintStringList
+//Purpose: prints out linked list of strings stored in state
+///////////////////////////////////////////////////////////////////////////
+void State::PrintStringList(ostream *outData, char *alpha) {
+  *outData << printStringList(alpha);
 }
 
+void State::logState(char *alpha) {
+  std::stringstream ss(printStringList(alpha));
+  std::string to;
+
+  while(std::getline(ss,to,'\n')){
+    LOG(DEBUG) << to;
+  }
+}
 
 ///////////////////////////////////////////////////////////////////////////
 // Function: State
@@ -279,7 +291,8 @@ string StringElem::toString() {
   for (int i = 0; i < (sizeof(m_counts)/ sizeof(double)) + 1; i++) {
     counts_dist += to_string(m_counts[i]) + " ";
   }
-  return "{StringElem - size: " + to_string(m_size) + ", string: " + m_string + ", counts: [" + counts_dist + "]}";
+  string stdStr(m_string);
+  return stdStr + "\t{StringElem - size: " + to_string(m_size) + ", string: " + m_string + ", counts: [" + counts_dist + "]}";
 }
 
 

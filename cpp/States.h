@@ -52,7 +52,11 @@ public:
 
     double *getCurrentDist() { return m_currentDist; }
 
+    std::string printStringList(char *alpha);
+
     void PrintStringList(ostream *outData, char *alpha);
+
+    void logState(char *alpha);
 
     int getListSize() { return m_listSize; }
 
