@@ -13,18 +13,18 @@
 #include <unordered_map>
 #include "Common.h"
 
-class HashTable2 {
+class SymbolToIndexMap {
 protected:
     std::unordered_map<char*, int> entries;
 
 public:
-    HashTable2();
+    SymbolToIndexMap();
 
-    ~HashTable2();
+    ~SymbolToIndexMap();
 
-    void Insert(char *string, int index);
+    void insert(char *string, int index);
 
-    int WhichIndex(char *string);
+    int findIndex(char *string);
 };
 
 #endif

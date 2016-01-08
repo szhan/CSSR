@@ -1,13 +1,13 @@
-#include "Hash2.h"
+#include "SymbolToIndexMap.h"
 
 /**
  * Hash2 creates a hash table of symbols and their index for use with CSSR
  */
-HashTable2::HashTable2() {
+SymbolToIndexMap::SymbolToIndexMap() {
   entries = unordered_map();
 }
 
-HashTable2::~HashTable2() {
+SymbolToIndexMap::~SymbolToIndexMap() {
   delete entries;
 }
 
@@ -20,7 +20,7 @@ HashTable2::~HashTable2() {
  * @param string      The string to insert into the hashtable.
  * @param index       The int of the index to insert.
  */
-void HashTable2::Insert(char *string, int index) {
+void SymbolToIndexMap::insert(char *string, int index) {
   if (string == NULL) {
     cerr << "Cannot insert null pointer into Hash Table\n";
     exit(1);
@@ -43,7 +43,7 @@ void HashTable2::Insert(char *string, int index) {
  * @param string      The string to find in the hashtable.
  * @return            The integer which points to the appropriate state.
  */
-int HashTable2::WhichIndex(char *string) {
+int SymbolToIndexMap::findIndex(char *string) {
   if ((string != NULL) && (string[0] == '\0')) {
     cerr << "Cannot check matching state for empty string\n";
     exit(1);
@@ -52,7 +52,7 @@ int HashTable2::WhichIndex(char *string) {
   std::unordered_map<char*,int>::const_iterator got = entries.find(string);
 
   if (got == entries.end()) {
-    cerr << "HashTable2::WhichIndex: String or symbol not in table.\n"
+    cerr << "SymbolToIndexMap::findIndex: String or symbol not in table.\n"
     << "A string/history has been encountered in the data which has"
     << "not been recorded in the set of states.  "
     << "See 'ReadMe' file for details";

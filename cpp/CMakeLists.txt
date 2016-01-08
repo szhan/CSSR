@@ -10,7 +10,7 @@ set(CSSR_VERSION_MINOR 1)
 set(SOURCE_FILES
     Main.cpp
     Machine.cpp
-    Hash2.cpp
+    SymbolToIndexMap.cpp
     Hash.cpp
     G_Array.cpp
     ParseTree.cpp

@@ -15,7 +15,7 @@
 #include "ParseTree.h"
 #include "G_Array.h"
 #include "Hash.h"
-#include "Hash2.h"
+#include "SymbolToIndexMap.h"
 #include "TransTable.h"
 #include "Test.h"
 
@@ -86,9 +86,9 @@ public:
 
     void RemoveAncestors(char *&removalString, State *&removalState);
 
-    void GetStateDists(ParseTree &parsetree, char input[], HashTable2 *hashtable);
+    void GetStateDists(ParseTree &parsetree, char input[], SymbolToIndexMap *hashtable);
 
-    void GetStateDistsMulti(ParseTree &parsetree, char input[], HashTable2 *hashtable, bool isMulti);
+    void GetStateDistsMulti(ParseTree &parsetree, char input[], SymbolToIndexMap *hashtable, bool isMulti);
 
     void FindNSetTransitions(int state, int maxLength, char *alpha);
 

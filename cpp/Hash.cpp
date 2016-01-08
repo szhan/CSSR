@@ -66,7 +66,7 @@ int HashTable::Hash(ulong key) {
 
 
 ////////////////////////////////////////////////////////////////
-//Function: HashTable::Insert
+//Function: HashTable::insert
 //Purpose: inserts a new element in the hash table, if there is
 //		   already an element at the appropriate index, puts new
 //		   element at the front of the list.

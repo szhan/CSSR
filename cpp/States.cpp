@@ -31,7 +31,7 @@
 
 
 ///////////////////////////////////////////////////////////////////////////
-// Function: State::Insert
+// Function: State::insert
 // Purpose: adds a new string to the linked list in a state
 // In Params: string for state
 // Out Params: any new lists created
@@ -66,7 +66,7 @@ void State::Insert(char string[], HashTable *table) {
 
 
 ///////////////////////////////////////////////////////////////////////////
-// Function: State::Insert
+// Function: State::insert
 // Purpose: adds a new string and 'counts array' to the linked list in a state
 // In Params: ArrayElem holding string and counts
 // Out Params: any new lists created
@@ -108,7 +108,7 @@ void State::Insert(ArrayElem *elem, HashTable *table) {
 
 
 ///////////////////////////////////////////////////////////////////////////
-// Function: State::Insert
+// Function: State::insert
 // Purpose: adds a new string and 'counts array' to the linked list in a state
 // In Params: String Element to copy and enter
 // Out Params: any new lists created

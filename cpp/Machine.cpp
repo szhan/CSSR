@@ -58,7 +58,7 @@ Machine::Machine(AllStates *allstates) {
 //            in an array
 //////////////////////////////////////////////////////////////////////////
 void Machine::CalcStringProbs(G_Array *g_array, int maxLength,
-                              HashTable2 *hashtable, double stringProbs[]) {
+                              SymbolToIndexMap *hashtable, double stringProbs[]) {
   int stringArraySize = g_array->getSize();
   char *string = NULL;
 
@@ -81,7 +81,7 @@ void Machine::CalcStringProbs(G_Array *g_array, int maxLength,
 // Post-Cond: the string probability been calculated and returned to the
 //            calling function
 //////////////////////////////////////////////////////////////////////////
-double Machine::CalcStringProb(char *string, HashTable2 *hashtable) {
+double Machine::CalcStringProb(char *string, SymbolToIndexMap *hashtable) {
   double totalPerString = 0;
   double totalPerState;
   double total = 0;
@@ -105,7 +105,7 @@ double Machine::CalcStringProb(char *string, HashTable2 *hashtable) {
     for (int j = 0; j < length && !isNullTrans; j++) {
       //get index of next alpha symbol
       symbol[0] = string[j];
-      index = hashtable->WhichIndex(symbol);
+      index = hashtable->findIndex(symbol);
       //get transition probability from current state
       totalPerState = totalPerState * (currentState->
           getCurrentDist())[index];
@@ -138,7 +138,7 @@ double Machine::CalcStringProb(char *string, HashTable2 *hashtable) {
 // Post-Cond: the relative entropy has been calculated and stored in the 
 //            machine class as a member variable
 //////////////////////////////////////////////////////////////////////////
-void Machine::CalcRelEnt(ParseTree &parsetree, HashTable2 *hashtable, bool isMulti) {
+void Machine::CalcRelEnt(ParseTree &parsetree, SymbolToIndexMap *hashtable, bool isMulti) {
   G_Array g_array;
   int dataSize = parsetree.getDataSize();
   int alphaSize = parsetree.getAlphaSize();
@@ -195,7 +195,7 @@ void Machine::CalcRelEnt(ParseTree &parsetree, HashTable2 *hashtable, bool isMul
 // Post-Cond: the relative entropy rate has been calculated and stored in the 
 //            machine class as a member variable
 //////////////////////////////////////////////////////////////////////////
-void Machine::CalcRelEntRate(ParseTree &parsetree, HashTable2 *hashtable, bool isMulti) {
+void Machine::CalcRelEntRate(ParseTree &parsetree, SymbolToIndexMap *hashtable, bool isMulti) {
   G_Array g_array;
   int dataSize = parsetree.getDataSize();
   int alphaSize = parsetree.getAlphaSize();
@@ -243,7 +243,7 @@ void Machine::CalcRelEntRate(ParseTree &parsetree, HashTable2 *hashtable, bool i
 //////////////////////////////////////////////////////////////////////////
 double Machine::CalcRelEntRateHist(double *stringProbs,
                                    ArrayElem **list,
-                                   HashTable2 *hashtable,
+                                   SymbolToIndexMap *hashtable,
                                    int index,
                                    char *alpha,
                                    int alphaSize,
@@ -301,7 +301,7 @@ double Machine::CalcRelEntRateAlpha(double stringProb,
                                     char *history,
                                     double &accumulatedInferredRatio,
                                     double dataDist, char alphaElem,
-                                    HashTable2 *hashtable
+                                    SymbolToIndexMap *hashtable
 ) {
   double logRatio = 0;
   double relEntRateAlpha = 0;
@@ -366,7 +366,7 @@ double Machine::CalcRelEntRateAlpha(double stringProb,
 // Post-Cond: the relative entropy rate has been calculated and stored in the 
 //            machine class as a member variable
 //////////////////////////////////////////////////////////////////////////
-void Machine::CalcVariation(ParseTree &parsetree, HashTable2 *hashtable, bool isMulti) {
+void Machine::CalcVariation(ParseTree &parsetree, SymbolToIndexMap *hashtable, bool isMulti) {
   G_Array g_array;
   int dataSize = parsetree.getDataSize();
   int alphaSize = parsetree.getAlphaSize();

@@ -10,7 +10,7 @@
 
 #include "Common.h"
 #include "G_Array.h"
-#include "Hash2.h"
+#include "SymbolToIndexMap.h"
 
 #define MAX_LINE_SIZE 500000
 
@@ -49,7 +49,7 @@ public:
       m_data = NULL;
       m_dataSize = 0;
       m_maxLength = length;
-      m_alphaHash = new HashTable2;
+      m_alphaHash = new SymbolToIndexMap;
       m_numLines = 0;
       m_adjustedDataSize = 0;
     }
@@ -79,7 +79,7 @@ public:
 
     int getNumLines() { return m_numLines; }
 
-    HashTable2 *MakeAlphaHash();
+    SymbolToIndexMap *MakeAlphaHash();
 
     int getAdjustedDataSize() { return m_adjustedDataSize; }
 
@@ -113,7 +113,7 @@ private:
     char *m_data;
     int m_dataSize;
     int m_maxLength;
-    HashTable2 *m_alphaHash;
+    SymbolToIndexMap *m_alphaHash;
     int m_numLines;
     int m_adjustedDataSize;
 };
