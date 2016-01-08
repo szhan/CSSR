@@ -30,8 +30,6 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-
-
 HashTable2::HashTable2() {
   for (int i = 0; i < HASHSIZE2; i++) {
     m_data[i] = NULL;
@@ -62,18 +60,11 @@ HashTable2::~HashTable2() {
   }
 }
 
-
-int HashTable2::Hash(ulong key) {
-  int hashValue = key % HASHSIZE2;
-  return hashValue;
-}
-
-
 ////////////////////////////////////////////////////////////////
 //Function: HashTable2::Insert
 //Purpose: inserts a new element in the hash table, if there is
-//		   already an element at the appropriate index, puts new
-//		   element at the front of the list.
+//         already an element at the appropriate index, puts new
+//         element at the front of the list.
 //In parameter: new string and index
 ////////////////////////////////////////////////////////////////
 void HashTable2::Insert(char *string, int index) {
@@ -81,35 +72,13 @@ void HashTable2::Insert(char *string, int index) {
     cerr << "Cannot insert null pointer into Hash Table\n";
     exit(1);
   }
+
   char *tempstring = NULL;
   tempstring = new char[strlen(string) + 1];
-  if (tempstring == NULL) {
-    cerr << "Out of memory." << endl;
-    exit(1);
-  }
-
   strcpy(tempstring, string);
-  ulong key = CreateKey(string);
-  int hashValue = Hash(key);
 
-  //create a new HashTable2Entry and put it at the front of the list
-  if ((hashValue >= 0) && (hashValue < HASHSIZE2)) {
-    HashTable2Entry *temp1 = NULL;
-    temp1 = new HashTable2Entry;
-    if (temp1 == NULL) {
-      cerr << "Out of memory." << endl;
-      exit(1);
-    }
-    temp1->m_string = tempstring;
-    temp1->m_index = index;
-    HashTable2Entry *temp2;
-    temp2 = m_data[hashValue];
-    m_data[hashValue] = temp1;
-    temp1->m_nextPtr = temp2;
-  }
-  else {
-    cerr << "Invalid hash value " << endl;
-  }
+  std::pair<char*, int> newEntry (tempstring, index);
+  entries.insert(newEntry);
 }
 
 
@@ -121,56 +90,20 @@ void HashTable2::Insert(char *string, int index) {
 //Return value: pointer to address of appropriate state
 ////////////////////////////////////////////////////////////////
 int HashTable2::WhichIndex(char *string) {
-  int index;
   if ((string != NULL) && (string[0] == '\0')) {
     cerr << "Cannot check matching state for empty string\n";
     exit(1);
   }
 
-  ulong currentKey = CreateKey(string);
-  int hashValue = Hash(currentKey);
-  index = -1;
+  std::unordered_map<char*,int>::const_iterator got = entries.find(string);
 
-  //traverse list
-  HashTable2Entry *temp = m_data[hashValue];
-  while ((temp != NULL) && (index == -1)) {
-    if (strcmp(string, (temp->m_string)) == 0) {
-      index = temp->m_index;
-    }
-
-    temp = temp->m_nextPtr;
-  }
-
-  if (index == -1) {
+  if (got == entries.end()) {
     cerr << "HashTable2::WhichIndex: String or symbol not in table.\n"
     << "A string/history has been encountered in the data which has"
     << "not been recorded in the set of states.  "
     << "See 'ReadMe' file for details";
     exit(1);
-  }
-  return index;
-}
-
-
-ulong HashTable2::CreateKey(char *string) {
-  ulong key = 0;
-  const char *ptr = string;
-  while (*ptr) {
-    key += (key << 5) + *ptr++;
-  }
-
-  return key;
-}
-
-
-void HashTable2::Print() {
-  HashTable2Entry *temp;
-
-  for (int i = 0; i < HASHSIZE2; i++) {
-    temp = m_data[i];
-    while (temp != NULL) {
-      cout << temp->m_string << "\t" << temp->m_index << endl;
-      temp = temp->m_nextPtr;
-    }
+  } else {
+    return got->second;
   }
 }

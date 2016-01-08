@@ -10,10 +10,12 @@
 #define  __HASH2_H
 #define HASHSIZE2  19
 
+#include <unordered_map>
 #include "Common.h"
 
 class HashTable2 {
-private:
+protected:
+    std::unordered_map<char*, int> entries = {};
 
     struct HashTable2Entry {
         char *m_string;
