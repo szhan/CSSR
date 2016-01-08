@@ -1,50 +1,47 @@
 CSSR
 =======
-CSSR tries to infer the minimal Markovian model capable of generating a
-time-series, or set of time-series from the same source.  The program
-implements the algorithm proposed in the paper "Blind Construction of Optimal
-Nonlinear Recursive Predictors for Discrete Sequences", hereafter BC.  [Cosma
-Rohilla Shalizi and Kristina Lisa Shalizi, pp. 504--511 of Max Chickering and
-Joseph Halpern (eds.), _Uncertainty in Artificial Intelligence: Proceedings of
-the Twentieth Conference_, available from http://arxiv.org/abs/cs.LG/0406011.]
-We won't describe the algorithm in any detail here (see BC for that), but the
-next two paragraphs say a little about what it produces and how it does it.
+CSSR tries to infer the minimal Markovian model capable of generating a time-series,
+or set of time-series from the same source.  The program implements the algorithm
+proposed in the paper "Blind Construction of Optimal Nonlinear Recursive Predictors
+for Discrete Sequences", hereafter BC.  [Cosma Rohilla Shalizi and Kristina Lisa
+Shalizi, pp. 504--511 of Max Chickering and Joseph Halpern (eds.), _Uncertainty in
+Artificial Intelligence: Proceedings of the Twentieth Conference_, available from
+http://arxiv.org/abs/cs.LG/0406011.] We won't describe the algorithm in any detail
+here (see BC for that), but the next two paragraphs say a little about what it
+produces and how it does it.
 
-The output of the algorithm is a set of states which form a Markov chain.  Each
-state has a certain probability of emitting any of the symbols in the original
-time series.  The current state and the symbol it emits fix the next state.
-(The states are "future-resolving", if you're from nonlinear dynamics, or
-"deterministic", if you're from automata theory.)  Each state, moreover,
-corresponds to a distinct set of strings, in the following sense.  If the state
-A contains a string w, and at time t the time-series ends with w, then at time
-t the Markov chain is in state A.  The set of states, their transition
-probabilities and connections, is called the state machine.
+The output of the algorithm is a set of states which form a Markov chain.  Each state
+has a certain probability of emitting any of the symbols in the original time series.
+The current state and the symbol it emits fix the next state.  (The states are
+"future-resolving", if you're from nonlinear dynamics, or "deterministic", if you're
+from automata theory.)  Each state, moreover, corresponds to a distinct set of
+strings, in the following sense.  If the state A contains a string w, and at time t
+the time-series ends with w, then at time t the Markov chain is in state A.  The set
+of states, their transition probabilities and connections, is called the state
+machine.
 
-The algorithm uses a recursive inference procedure to find the simplest set of
-states with the above properties that can reproduce the statistical properties
-of the data.  If we could give the algorithm an infinitely long time series,
-and let it consider infinitely long sub-strings, it would produce the causal
-states of the process, which are its ideal predictors (see BC for a formal
-definition).  Since we have only finite data, there is always some probability
-that the inferred or estimated states are not the true causal states.
-Nonetheless, for the rest of this file, when we say "causal states", we mean
-the estimated causal states.
-
+The algorithm uses a recursive inference procedure to find the simplest set of states
+with the above properties that can reproduce the statistical properties of the data.
+If we could give the algorithm an infinitely long time series, and let it consider
+infinitely long sub-strings, it would produce the causal states of the process, which
+are its ideal predictors (see BC for a formal definition).  Since we have only finite
+data, there is always some probability that the inferred or estimated states are not
+the true causal states.  Nonetheless, for the rest of this file, when we say "causal
+states", we mean the estimated causal states.
 
 
-Obtaining and Installing the Program
+Obtaining and Installing the Stable Binary
 --------------
-The code for CSSR can be obtained from http://bactra.org/CSSR/.  If you'd like
-to set up a new archive for it, we'd appreciate hearing about it.
+The code for CSSR can be obtained from http://bactra.org/CSSR/.  If you'd like to set
+up a new archive for it, we'd appreciate hearing about it.
 
-From any site, download the CSSR-v0.1.tar.gz file for the code.  When gunzipped
-and untarred, this will produce a directory called CSSR-v0.1, containing all
-the necessary header and source code files, a copy of this documentation, the
-release license, and a make file. Running make inside that directory will
-produce an executable, which should be moved to someplace in the command
-path. On most Unix systems, the following sequence of commands will create the
-executable and put it in the your bin directory, usually part of your command
-path.
+From any site, download the CSSR-v0.1.tar.gz file for the code.  When gunzipped and
+untarred, this will produce a directory called CSSR-v0.1, containing all the
+necessary header and source code files, a copy of this documentation, the release
+license, and a make file. Running make inside that directory will produce an
+executable, which should be moved to someplace in the command path. On most Unix
+systems, the following sequence of commands will create the executable and put it in
+the your bin directory, usually part of your command path.
 
     gunzip CSSR-v0.1.tar.gz
     tar xvf CSSR-v0.1.tar
@@ -57,6 +54,13 @@ with gcc 3.2 on Linux (Red Hat 9, SUSE 9), with gcc 3.3 on Macintosh OS X
 (10.3) and with Microsoft Visual C++ on Windows 98.  On some systems,
 compilation may produce warnings about escape sequences or the use of
 deprecated headers.  These can be safely ignored.
+
+Working against latest
+--------------
+
+    git clone git@github.com:stites/CSSR.git
+    cd cpp/
+    cmake .  #<== pending
 
 
 Usage
