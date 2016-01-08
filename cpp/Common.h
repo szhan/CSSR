@@ -17,9 +17,8 @@
 #include <iomanip>
 #include <string.h>
 #include <ctype.h>
-#include ".depends/easylogging++.h"
 
-INITIALIZE_EASYLOGGINGPP
+#include ".depends/easylogging++.h"
 
 #define INCREMENT 10     //size of array growth
 #define INITIAL_SIZE 50  //intial size of array of states

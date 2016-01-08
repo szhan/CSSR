@@ -19,7 +19,6 @@
 #include "TransTable.h"
 #include "Test.h"
 
-
 //forward declarations
 class State;
 

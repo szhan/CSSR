@@ -28,11 +28,9 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-
-
-
 #include "AllStates.h"
 
+INITIALIZE_EASYLOGGINGPP
 
 ///////////////////////////////////////////////////////////////////////////
 // Function: AllStates::PrintOut
@@ -363,13 +361,16 @@ bool AllStates::RePartition(bool match, char *removalString,
                             double *newDist, int stringCount) {
   double sigLevel;
 
+  LOG_IF(!match, DEBUG) << "Reject the null hypothesis" << endl;
   //compare new distribution to all other states
-  for (int q = 0; q < m_arraySize && match == false; q++) {
+  for (int q = 0; q < m_arraySize && !match; q++) {
     //test distribution against that of current state
     sigLevel = Compare(q, newDist, stringCount);
     //if not significantly different from state,
     //add to that state
     if (sigLevel >= m_sigLevel) {
+      std::string stateStr (element->getString());
+      LOG(DEBUG) << "Creating new state with: " + stateStr << endl;
       match = true;
       Insert(element, q);
       //re-calculate probability distribution
