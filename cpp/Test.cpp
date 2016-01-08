@@ -176,15 +176,16 @@ void Test::PrintDistribution(double dist[]) {
   cout << endl;
 }
 
+
 double Test::RunTest(double dist1[], int count1, double dist2[], int count2, int distSize) {
-  cout << "Running test with distSize of " << std::to_string(distSize);
-  cout << ", Count1: " << std::to_string(count1);
-  cout << ", Count2: " << std::to_string(count2);
-  cout << endl;
+  string stats = "Running test with distSize of " + to_string(distSize) +
+                 ", Count1: " + to_string(count1) + ", Count2: " + to_string(count2);
+  cout << stats << endl;
   cout << "dist1: ";
   PrintDistribution(dist1);
   cout << "dist2: ";
   PrintDistribution(dist2);
+  cout << endl;
 
   if (m_type == KS) {
     return RunKSTest(dist1, count1, dist2, count2, distSize);

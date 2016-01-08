@@ -208,7 +208,7 @@ State::~State() {
 //Function: PrintStringList
 //Purpose: prints out linked list of strings stored in state
 ///////////////////////////////////////////////////////////////////////////
-void State::PrintStringList(ofstream *outData, char alpha[]) {
+void State::PrintStringList(ostream *outData, char *alpha) {
   StringElem *temp1 = m_StringList;
   char null[6] = "NULL\0";
 
@@ -272,6 +272,14 @@ StringElem::StringElem(int distSize) {
   m_counts = new int[distSize];
   m_string = NULL;
   m_nextPtr = NULL;
+}
+
+string StringElem::toString() {
+  string counts_dist = "";
+  for (int i = 0; i < (sizeof(m_counts)/ sizeof(double)) + 1; i++) {
+    counts_dist += to_string(m_counts[i]) + " ";
+  }
+  return "{StringElem - size: " + to_string(m_size) + ", string: " + m_string + ", counts: [" + counts_dist + "]}";
 }
 
 

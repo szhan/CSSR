@@ -30,7 +30,7 @@ class Test;
 
 class AllStates {
 public:
-    AllStates(int distSize, double sigLevel, bool isChi);
+    AllStates(ParseTree* parseTree, double sigLevel, bool isChi);
 
     ~AllStates();
 
@@ -86,11 +86,9 @@ public:
 
     void RemoveAncestors(char *&removalString, State *&removalState);
 
-    void GetStateDists(ParseTree &parsetree, char input[],
-                       HashTable2 *hashtable);
+    void GetStateDists(ParseTree &parsetree, char input[], HashTable2 *hashtable);
 
-    void GetStateDistsMulti(ParseTree &parsetree, char input[],
-                            HashTable2 *hashtable, bool isMulti);
+    void GetStateDistsMulti(ParseTree &parsetree, char input[], HashTable2 *hashtable, bool isMulti);
 
     void FindNSetTransitions(int state, int maxLength, char *alpha);
 
@@ -135,6 +133,7 @@ public:
                          ParseTree &parsetree, bool isMulti, int diff);
 
 private:
+    ParseTree *m_parseTree; //access the parse tree for convenience
     State **m_StateArray; //collection of pointers to all the states in a
     // growable array
     int m_arraySize;      //size of array

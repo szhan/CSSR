@@ -112,7 +112,7 @@ int main(int argc, char *argv[]) {
   alphaHash = parsetree.MakeAlphaHash();
 
   //create array of states
-  AllStates allstates(parsetree.getAlphaSize(), sigLevel, isChi);
+  AllStates allstates(&parsetree, sigLevel, isChi);
 
   //calculate frequency of occurrence of symbols
   allstates.InitialFrequencies(parsetree);

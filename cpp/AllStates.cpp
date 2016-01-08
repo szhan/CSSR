@@ -215,7 +215,6 @@ void AllStates::CalcNewDist(int length, ParseTree &parsetree) {
   listSize = g_array.getSize();
 
   //for all of the strings
-  cout << "AllStates, List Size: " << std::to_string(listSize) << endl << endl;
   for (int i = 0; i < listSize; i++) {
     match = false;
     stringCount = 0;
@@ -239,6 +238,7 @@ void AllStates::CalcNewDist(int length, ParseTree &parsetree) {
 
     //if there were no matches make new state
     if (!match) {
+      cout << "Rejecting null hypothesis" << endl;
       //insert new string
       Insert(list[i], m_arraySize);
 
@@ -1496,11 +1496,12 @@ AllStates::~AllStates() {
 // Function: AllStates
 // Purpose: constructor for AllStates
 ///////////////////////////////////////////////////////////////////////////
-AllStates::AllStates(int distSize, double sigLevel, bool isChi) {
+AllStates::AllStates(ParseTree* parseTree, double sigLevel, bool isChi) {
+  m_parseTree = parseTree;
   m_reSynch = false;
   m_sigLevel = sigLevel;
   m_test = new Test(isChi);
-  m_distSize = distSize;
+  m_distSize = parseTree->getAlphaSize();
   m_arraySize = 0;
   m_maxArraySize = INITIAL_SIZE;
   m_StateArray = new State *[INITIAL_SIZE];
@@ -1541,6 +1542,8 @@ double AllStates::Compare(int k, double newDist[], int newDistCount) {
   double * currentDist = m_StateArray[k]->getCurrentDist();
   int distCount = m_StateArray[k]->getCount();
 
+  cout << endl << endl << "AllStates List Size: " << to_string(m_arraySize) << endl;
+  cout << "Have distribution information only." << endl;
   return m_test->RunTest(currentDist, distCount, newDist, newDistCount, m_distSize);
 }
 
@@ -1555,16 +1558,11 @@ double AllStates::Compare(int k, double newDist[], int newDistCount) {
 // Post-Cond: sig level is  known
 //////////////////////////////////////////////////////////////////////////
 double AllStates::Compare(State *state, double newDist[], int count) {
-  return m_test->RunTest(state->getCurrentDist(), state->getCount(), newDist,
-                         count, m_distSize);
+  cout << endl << endl << "AllStates List Size: " << to_string(m_arraySize) << endl;
+  cout << "Have state information:" << endl;
+  cout << "===========================================" << endl;
+  state->PrintStringList(&cout, m_parseTree->getAlpha());
+  cout << "===========================================" << endl;
+  return m_test->RunTest(state->getCurrentDist(), state->getCount(), newDist, count, m_distSize);
 }
-
-
-
-
-
-
-
-
-
 

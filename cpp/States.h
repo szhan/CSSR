@@ -52,7 +52,7 @@ public:
 
     double *getCurrentDist() { return m_currentDist; }
 
-    void PrintStringList(ofstream *outData, char alpha[]);
+    void PrintStringList(ostream *outData, char *alpha);
 
     int getListSize() { return m_listSize; }
 
@@ -88,6 +88,8 @@ public:
     StringElem(int distSize);
 
     StringElem(const StringElem &oldElem);
+
+    string toString();
 
     ~StringElem() {
       if (m_string) {
