@@ -4,11 +4,10 @@
  * Hash2 creates a hash table of symbols and their index for use with CSSR
  */
 SymbolToIndexMap::SymbolToIndexMap() {
-  entries = unordered_map();
+  entries = unordered_map<char*, int>();
 }
 
 SymbolToIndexMap::~SymbolToIndexMap() {
-  delete entries;
 }
 
 /**
@@ -52,7 +51,16 @@ int SymbolToIndexMap::findIndex(char *string) {
   std::unordered_map<char*,int>::const_iterator got = entries.find(string);
 
   if (got == entries.end()) {
-    cerr << "SymbolToIndexMap::findIndex: String or symbol not in table.\n"
+
+    std::cout << "mymap contains:";
+    for ( auto it = entries.begin(); it != entries.end(); ++it ) {
+      std::cout << " " << it->first << ":" << it->second << endl;
+      cout<< std::to_string(string == it->first) << endl;
+    }
+    std::cout << std::endl;
+
+    std::string str(string);
+    cerr << "SymbolToIndexMap::findIndex: String or symbol \""+str+ "\" not in table.\n"
     << "A string/history has been encountered in the data which has"
     << "not been recorded in the set of states.  "
     << "See 'ReadMe' file for details";
