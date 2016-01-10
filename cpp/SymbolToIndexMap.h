@@ -15,7 +15,7 @@
 
 class SymbolToIndexMap {
 protected:
-    std::unordered_map<char*, int> entries;
+    std::unordered_map<std::string, int> entries;
 
 public:
     SymbolToIndexMap();

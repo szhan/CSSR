@@ -4,7 +4,7 @@
  * Hash2 creates a hash table of symbols and their index for use with CSSR
  */
 SymbolToIndexMap::SymbolToIndexMap() {
-  entries = unordered_map<char*, int>();
+  entries = unordered_map<std::string, int>();
 }
 
 SymbolToIndexMap::~SymbolToIndexMap() {
@@ -29,7 +29,8 @@ void SymbolToIndexMap::insert(char *string, int index) {
   tempstring = new char[strlen(string) + 1];
   strcpy(tempstring, string);
 
-  std::pair<char*, int> newEntry (tempstring, index);
+  std::string insertable(tempstring);
+  std::pair<std::string, int> newEntry (insertable, index);
   entries.insert(newEntry);
 }
 
@@ -48,7 +49,8 @@ int SymbolToIndexMap::findIndex(char *string) {
     exit(1);
   }
 
-  std::unordered_map<char*,int>::const_iterator got = entries.find(string);
+  std::string findable (string);
+  std::unordered_map<std::string,int>::const_iterator got = entries.find(findable);
 
   if (got == entries.end()) {
 
