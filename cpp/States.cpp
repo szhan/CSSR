@@ -293,7 +293,7 @@ StringElem::StringElem(int distSize) {
 string StringElem::toString() {
   string counts_dist = "";
   int total = 0;
-  for (int i = 0; i < (sizeof(m_counts)/ sizeof(double)) + 1; i++) {
+  for (int i = 0; i < (sizeof(m_counts)/ sizeof(int)); i++) {
     total += m_counts[i];
     counts_dist += to_string(m_counts[i]) + " ";
   }
@@ -328,12 +328,9 @@ void State::RemoveString(StringElem *element) {
       delete temp;
     }
     else {
-      for (temp = m_StringList;
-           temp->m_nextPtr != NULL && temp->m_nextPtr != element;
-           temp = temp->m_nextPtr) { }
+      for (temp = m_StringList; temp->m_nextPtr != NULL && temp->m_nextPtr != element; temp = temp->m_nextPtr) { }
       if (temp->m_nextPtr == NULL) {
-        cerr << "trying to remove a string which does not exist in"
-        << " state";
+        LOG(ERROR) << "trying to remove a string which does not exist in state";
         exit(1);
       }
       if (temp->m_nextPtr == m_listTail) {

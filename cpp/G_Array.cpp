@@ -38,10 +38,6 @@ void G_Array::Grow(int newsize) {
   //check if index is valid
   ArrayElem **newBuffer = NULL;
   newBuffer = new ArrayElem *[newsize];
-  if (newBuffer == NULL) {
-    cerr << "Out of memory." << endl;
-    exit(1);
-  }
 
   //copy array contents into newBuffer
   for (int i = 0; i <= m_size; i++) {

@@ -705,57 +705,63 @@ void AllStates::FindNSetTransitions(int state, int maxLength, char *alpha) {
   shortestLength = strlen(temp->m_string) + 2;
 
   for (int k = 0; k < m_distSize; k++) {
+    LOG(DEBUG) << "Next for-loop across m_distSize";
     isTooLong = false;
     isNull = true;
     temp = m_StateArray[state]->getStringList();
 
-    while (isNull == true && temp && isTooLong == false) {
+    while (isNull && temp && !isTooLong) {
+      LOG(DEBUG) << "Next iteration";
       length = strlen(temp->m_string) + 2;
       childString = new char[length];
       strcpy(childString, temp->m_string);
 
-      //if string exceeds max length allowed
       if ((length == maxLength + 2) && (shortestLength < (maxLength + 2))) {
+        LOG(DEBUG) << "String exceeds max length allowed";
         childState = NULL_STATE;
         isTooLong = true;
       }
       if (length > maxLength + 1) {
+        LOG(DEBUG) << "???";
         childString++;
       }
 
       symbol[0] = alpha[k];
 
-      //create child string
+      LOG(DEBUG) << "create child string with symbol: " << symbol;
       strcat(childString, symbol);
 
-      //determine state of child string
+      LOG(DEBUG) << "determine state of child string: " << childState;
       childState = m_table->WhichStateNumber(childString);
       if (childState != NULL_STATE) {
-        m_StateArray[state]->setTransitions
-            (k, childState);
-
+        LOG(DEBUG) << "childState is not null state, setting transition for state " << state
+                   << ": {postition: " << k << ", childState: " << childState << "}";
+        m_StateArray[state]->setTransitions (k, childState);
         isNull = false;
       }
 
-      if (isNull == true && temp) {
+      if (isNull && temp) {
+        LOG(DEBUG) << "isNull && stateStringElem";
         temp = temp->m_nextPtr;
       }
 
       if (length > maxLength + 1) {
+        LOG(DEBUG) << "length > maxLength + 1";
         childString--;
       }
 
+      LOG(DEBUG) << "deleting childState";
       delete[] childString;
     }
 
-    //if no valid transitions were found, set to NULL_STATE
     if (isNull || isTooLong) {
+      LOG(DEBUG) << "no valid transitions were found, setting to NULL_STATE";
       m_StateArray[state]->setTransitions(k, childState);
     }
   }
+
   delete[] symbol;
 }
-
 
 /////////////////////////////////////////////////////////////////////////
 //Function: AllStates::DeAllocateArray

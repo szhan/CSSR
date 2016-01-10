@@ -72,6 +72,14 @@ public:
 
     int getTransitions(int index) { return m_transitions[index]; }
 
+    std::string stringifyTransitions() {
+      std::string memo = "";
+      for (int i = 0; i < (sizeof(m_transitions)/ sizeof(int)) + 1; i++) {
+        memo += to_string(m_transitions[i]) + " ";
+      }
+      return "[ " + memo + "]";
+    };
+
     void setFrequency(double freq) { m_frequency = freq; }
 
     void decrementNumber() { m_number--; }
