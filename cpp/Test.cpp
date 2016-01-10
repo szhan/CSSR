@@ -164,15 +164,18 @@ float Test::gammln(float xx) {
 }
 
 void Test::nerror(const char error_text[]) {
-  cerr << error_text << endl;
+  std::string errorMessage (error_text);
+  LOG(ERROR) << errorMessage;
   exit(1);
 }
+
 std::string Test::printDistribution(std::string label, double *dist) {
   std::string memo = label + ": ";
   int i;
   for (i = 0; i < (sizeof(dist)/ sizeof(double)) + 1; i++) {
+    double item = dist[i];
     std::ostringstream strs;
-    strs << dist[i];
+    strs << item;
     memo += strs.str() + "\t";
   }
   return memo;
@@ -180,9 +183,9 @@ std::string Test::printDistribution(std::string label, double *dist) {
 
 
 double Test::RunTest(double dist1[], int count1, double dist2[], int count2, int distSize) {
-  string stats = "Running test with distSize of " + to_string(distSize) +
-                 ", Count1: " + to_string(count1) + ", Count2: " + to_string(count2);
-  LOG(DEBUG) << stats;
+  LOG(DEBUG) << "Running test with distSize of " + to_string(distSize) +
+                 ", Count1: " + to_string(count1) +
+                 ", Count2: " + to_string(count2);
   LOG(DEBUG) << printDistribution("dist1", dist1);
   LOG(DEBUG) << printDistribution("dist2", dist2);
 

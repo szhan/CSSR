@@ -15,7 +15,6 @@
 
 class ArrayElem {
 public:
-
     ArrayElem() {
       m_string = NULL;
       m_counts = NULL;
@@ -30,15 +29,31 @@ public:
 
     char *getString() { return m_string; }
 
+    std::string getHistory() {
+      std::string stringifyed (m_string);
+      return stringifyed;
+    }
+
     void setString(char string[]);
 
     void setCounts(int counts[], int length);
 
     int *getCounts() { return m_counts; }
 
-private:
+    std::string toString() {
 
+      std::string dist = "";
+      int total = 0;
+      for (int i = 0; i < sizeof(m_counts)/sizeof(m_counts[0]); i++) {
+        total += m_counts[i];
+        dist += to_string(m_counts[i]) + "\t";
+      }
+      return "ArrayElem {m_string: " + getHistory() + ", m_counts:["+dist+"], total: "+std::to_string(total)+"}";
+    };
+
+protected:
     char *m_string;
+
     int *m_counts;
 };
 

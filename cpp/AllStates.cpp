@@ -203,6 +203,7 @@ void AllStates::CalcNewDist(int length, ParseTree &parsetree) {
   State *removalState;
   char *removalString;
   ArrayElem **list;
+  ArrayElem * listElem;
   int listSize;
 
   //get list containing all strings of proper length
@@ -212,19 +213,26 @@ void AllStates::CalcNewDist(int length, ParseTree &parsetree) {
 
   //for all of the strings
   for (int i = 0; i < listSize; i++) {
+    LOG(DEBUG) << "===========================================";
     match = false;
     stringCount = 0;
+    listElem = list[i];
+    LOG(DEBUG) << listElem -> toString();
 
     //calculate new distribution
     for (int k = 0; k < m_distSize; k++) {
-      newDist[k] = (double) ((list[i]->getCounts())[k]);
-      stringCount += (list[i]->getCounts())[k];
+      LOG(DEBUG) << listElem->getCounts()[k];
+      newDist[k] = (double) ((listElem->getCounts())[k]);
+      stringCount += (listElem->getCounts())[k];
     }
+    LOG(DEBUG) << "stringCount: " + std::to_string(stringCount);
+    LOG(DEBUG) << Test::printDistribution(listElem->getHistory() + " freq", newDist);
 
     //divide by total string occurences
     for (int j = 0; j < m_distSize; j++) {
       newDist[j] = newDist[j] / (double) stringCount;
     }
+    LOG(DEBUG) << Test::printDistribution(listElem->getHistory() + " dist", newDist);
 
     //check whether new distribution matches that of parent state
     match = CompareToParent(removalString, removalState, list[i], newDist, length, match, stringCount);
@@ -235,16 +243,20 @@ void AllStates::CalcNewDist(int length, ParseTree &parsetree) {
     //if there were no matches make new state
     if (!match) {
       std::string stateStr (removalString);
-      LOG(DEBUG) << "Creating new state with: " + stateStr << endl;
+      LOG(DEBUG) << "Creating new state with: " + list[i]->getHistory();
 
       //insert new string
       Insert(list[i], m_arraySize);
 
       //calculate probability distribution
       m_StateArray[m_arraySize - 1]->CalcCurrentDist();
+      LOG(DEBUG) << "Generated State:";
+      m_StateArray[m_arraySize - 1]->logState(parsetree.getAlpha());
+
 
       //remove ancestor-strings when progeny
       //creates new state
+      LOG(DEBUG) << "removing ancestors with:";
       RemoveAncestors(removalString, removalState);
     }
   }
@@ -281,9 +293,11 @@ void AllStates::RemoveAncestors(char *&removalString, State *&removalState) {
       m_table->RemoveString(removalString);
       //if state is empty remove it
       if (!removalState->getStringList()) {
+        LOG(DEBUG) << "RemoveState(removalState->getNumber())";
         RemoveState(removalState->getNumber());
       }
       else {
+        LOG(DEBUG) << "removalState->CalcCurrentDist()";
         //re-caculate ancestor-state's distribution
         removalState->CalcCurrentDist();
       }
@@ -361,7 +375,7 @@ bool AllStates::RePartition(bool match, char *removalString,
                             double *newDist, int stringCount) {
   double sigLevel;
 
-  LOG_IF(!match, DEBUG) << "Reject the null hypothesis" << endl;
+  LOG_IF(!match, DEBUG) << "\nReject the null hypothesis";
   //compare new distribution to all other states
   for (int q = 0; q < m_arraySize && !match; q++) {
     //test distribution against that of current state
@@ -375,7 +389,7 @@ bool AllStates::RePartition(bool match, char *removalString,
       m_StateArray[q]->CalcCurrentDist();
     }
   }
-  LOG_IF(!match, DEBUG) << "Alternate Hypothesis complete" << endl;
+  LOG_IF(!match, DEBUG) << "Alternate Hypothesis complete";
 
   return match;
 }
@@ -820,7 +834,7 @@ void AllStates::CheckConnComponents(ParseTree &parsetree) {
   }
 
   //keep doing until number of states stabilizes
-  while (done == false) {
+  while (!done) {
     transTable = new TransTable(m_arraySize);
     done = true;
     if (m_arraySize > 1) {
@@ -899,7 +913,7 @@ void AllStates::FillRecurrStateArray(char *alpha, int maxLength, int index,
         }
 
         //if not, add that state to the array
-        if (match == false) {
+        if (!match) {
           stateArray[stateCounter] = childState;
           stateCounter++;
         }
@@ -922,13 +936,11 @@ void AllStates::FillRecurrStateArray(char *alpha, int maxLength, int index,
 ///////////////////////////////////////////////////////////////////////////
 // Function: AllStates::RemoveTransientStates
 // Purpose: removes any transient states
-// In Params: array of recurrent states, boolean to be set when none are
-//            deleted, number of transient states
+// In Params: array of recurrent states, boolean to be set when none are deleted, number of transient states
 // Out Params: none
 // In/Out Params: none
 // Pre- Cond: Array of recurrent states has been set
-// Post-Cond: Transient states have been deleted (though more may have been
-//            created)
+// Post-Cond: Transient states have been deleted (though more may have been created)
 //////////////////////////////////////////////////////////////////////////
 bool AllStates::RemoveTransientStates(int *stateArray, bool done,
                                       int stateCounter, TransTable *transTable,
@@ -942,21 +954,23 @@ bool AllStates::RemoveTransientStates(int *stateArray, bool done,
   int lowest = m_arraySize;
 
   removeAdjust = 0;
+  LOG(ERROR) << "============================================================================================";
+  LOG(ERROR) << "============================================================================================";
 
   //remove any states not found
   for (int z = 0; z < m_arraySize; z++) {
     match = false;
-    for (int x = 0; x < stateCounter && match == false; x++) {
+    for (int x = 0; x < stateCounter && !match; x++) {
       if (stateArray[x] == z) {
         match = true;
       }
     }
-    if (match == false) {
+    if (!match) {
 
       //check longest histories for uniqueness
       //of transitions, if unique, don't delete
       transTemp = transTable->WhichStrings(z - removeAdjust);
-      while (transTemp && isUnique == false) {
+      while (transTemp && !isUnique) {
         //go to state of transitioning, max length history
         //and check it against other histories
         isUnique = CheckUniqueTrans(transTemp->stringPtr,
@@ -968,7 +982,7 @@ bool AllStates::RemoveTransientStates(int *stateArray, bool done,
 
       //remove state only if state doesn't have a max length history
       //with unique characteristics transitiioning to it
-      if (isUnique == false) {
+      if (!isUnique) {
         //reset transition table
         transTable->RemoveStringsAndState(z - removeAdjust, removeAdjust, lowest);
         //remove strings in state
@@ -1540,13 +1554,14 @@ double AllStates::Compare(int k, int j) {
 // Post-Cond: sig level is  known
 //////////////////////////////////////////////////////////////////////////
 double AllStates::Compare(int k, double newDist[], int newDistCount) {
-  double * currentDist = m_StateArray[k]->getCurrentDist();
-  int distCount = m_StateArray[k]->getCount();
+  State * state = m_StateArray[k];
+  double * currentDist = state->getCurrentDist();
+  int distCount = state->getCount();
 
-  cout << endl;
-  LOG(DEBUG) << "===========================================";
   LOG(DEBUG) << "AllStates List Size: " << to_string(m_arraySize) << endl;
-  LOG(DEBUG) << "Have distribution information only." << endl;
+  LOG(DEBUG) << "Have state information:";
+  state->logState(m_parseTree->getAlpha());
+
   return m_test->RunTest(currentDist, distCount, newDist, newDistCount, m_distSize);
 }
 
@@ -1562,9 +1577,8 @@ double AllStates::Compare(int k, double newDist[], int newDistCount) {
 //////////////////////////////////////////////////////////////////////////
 double AllStates::Compare(State *state, double newDist[], int count) {
   cout << endl;
-  LOG(DEBUG) << "===========================================";
   LOG(DEBUG) << "AllStates List Size: " << to_string(m_arraySize);
-  LOG(DEBUG) << "Have state information:";
+  LOG(DEBUG) << "Have state "+std::to_string(state->getNumber())+" information:";
   state->logState(m_parseTree->getAlpha());
   return m_test->RunTest(state->getCurrentDist(), state->getCount(), newDist, count, m_distSize);
 }

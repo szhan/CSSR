@@ -27,7 +27,7 @@ enum testType {
 };
 
 class Test {
-  private:
+  protected:
     testType m_type;
 
     //Chi-Square Functions
@@ -45,18 +45,16 @@ class Test {
 
     float gammln(float xx);
 
-    void chstwo(double bins1[], int n1, double bins2[], int n2, int nbins,
-                int knstrn, float *df, float *chsq, double *prob);
+    void chstwo(double bins1[], int n1, double bins2[], int n2, int nbins, int knstrn, float *df, float *chsq, double *prob);
 
     //KS Functions
-    void KStwo(double data1[], unsigned long n1, double data2[],
-               unsigned long n2, double *d, double *prob, int dist_size);
+    void KStwo(double data1[], unsigned long n1, double data2[], unsigned long n2, double *d, double *prob, int dist_size);
 
     double ProbKS(double alam);
 
-    std::string printDistribution(std::string label, double *dist);
-
   public:
+    static std::string printDistribution(std::string label, double *dist);
+
     Test(bool isChi) { if (isChi) { m_type = CHIS; } else { m_type = KS; }}
 
     ~Test();

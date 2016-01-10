@@ -222,18 +222,22 @@ std::string State::printStringList(char *alpha){
     for (int i = 0; i < m_distributionSize; i++) {
       std::ostringstream strs;
       strs << m_currentDist[i];
-      serialization += "P(" + to_string(alpha[i]) + ") = " + strs.str() + "\t";
+      std::string symbol(1, alpha[i]);
+      serialization += "P(" + symbol + ") = " + strs.str() + "\t";
     }
     serialization += "\ntransitions: ";
 
     for (int k = 0; k < m_distributionSize; k++) {
-      serialization += "T(" + to_string(alpha[k]) + ") = " + (m_transitions[k] == -1 ? null : to_string(m_transitions[k]))+ "\t";
+      std::string symbol(1, alpha[k]);
+      serialization += "T(" + symbol + ") = " + (m_transitions[k] == -1 ? null : to_string(m_transitions[k]))+ "\t";
     }
 
-    serialization += "\n";
     std::ostringstream freqStr;
     freqStr << m_frequency;
-    serialization += "P(state): <CURRENTLY WRONG> " + freqStr.str();
+    serialization += "\nP(state): <CURRENTLY WRONG> " + freqStr.str();
+    serialization += "\n\nState "+std::to_string(m_number)+" Fields:";
+    serialization += "\nm_occurenceCount: " + std::to_string(m_occurenceCount) + "\t description: number of times current state's strings occur in data";
+    serialization += "\nm_frequency: "+std::to_string(m_frequency)+"\t description: probability of seeing the state";
   }
   else {
     serialization += "empty state\n";
@@ -288,11 +292,13 @@ StringElem::StringElem(int distSize) {
 
 string StringElem::toString() {
   string counts_dist = "";
+  int total = 0;
   for (int i = 0; i < (sizeof(m_counts)/ sizeof(double)) + 1; i++) {
+    total += m_counts[i];
     counts_dist += to_string(m_counts[i]) + " ";
   }
   string stdStr(m_string);
-  return stdStr + "\t{StringElem - size: " + to_string(m_size) + ", string: " + m_string + ", counts: [" + counts_dist + "]}";
+  return stdStr + "\t{StringElem - size: " + to_string(m_size) + ", string: " + m_string + ", counts: [" + counts_dist + "], total: "+to_string(total)+"}";
 }
 
 
