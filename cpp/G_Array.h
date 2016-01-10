@@ -60,29 +60,19 @@ protected:
 
 class G_Array {
 public:
-    G_Array() {
-      m_size = 0;
-      m_G_ArrayList = new ArrayElem *[G_INITIAL_SIZE];
-      m_maxsize = G_INITIAL_SIZE;
-    }
+    G_Array();
 
     ~G_Array();
 
-    bool Full() { return (m_size == m_maxsize - 1); }
-
     void Insert(char string[], int counts[], int length);
 
-    void Grow(int newsize);
+    long getSize();
 
-    int getSize() { return m_size; }
+    ArrayElem **getList();
 
-    ArrayElem **getList() { return m_G_ArrayList; }
+protected:
+    std::vector<ArrayElem*> storageVector;
 
-private:
-
-    ArrayElem **m_G_ArrayList; //array of strings
-    int m_size;      //size of array
-    int m_maxsize;    //maximum size of array
 };
 
 #endif

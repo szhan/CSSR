@@ -29,64 +29,29 @@
 
 #include "G_Array.h"
 
-////////////////////////////////////////////////////////////////
-//Function: G_Array::Grow
-//Purpose: updates size of array
-//In parameter: new array size
-////////////////////////////////////////////////////////////////
-void G_Array::Grow(int newsize) {
-  //check if index is valid
-  ArrayElem **newBuffer = NULL;
-  newBuffer = new ArrayElem *[newsize];
-
-  //copy array contents into newBuffer
-  for (int i = 0; i <= m_size; i++) {
-    newBuffer[i] = m_G_ArrayList[i];
-  }
-  delete[] m_G_ArrayList;
-  m_G_ArrayList = NULL;
-
-  //point the array at the newly created buffer
-  m_G_ArrayList = newBuffer;
-  m_maxsize = newsize;
+G_Array::G_Array() {
+  storageVector = std::vector<ArrayElem*>();
 }
 
+G_Array::~G_Array() {
+  storageVector.clear();
+  storageVector.shrink_to_fit();
+};
 
-/////////////////////////////////////////////////////////////
-//Function: G_Array::insert
-//Purpose: adds new element to the growable array
-//In parameter: string, array of ints and length of
-//              array of ints
-/////////////////////////////////////////////////////////////
 void G_Array::Insert(char string[], int counts[], int length) {
   ArrayElem *temp = new ArrayElem;
   temp->setString(string);
   temp->setCounts(counts, length);
-
-  if (Full()) {
-    Grow(m_maxsize + G_INCREMENT);
-  }
-
-  m_G_ArrayList[m_size] = temp;
-  m_size++;
+  storageVector.push_back(temp);
 }
 
-
-////////////////////////////////////////////////////////////
-//Function: G_Array::~G_Array
-//Purpose: destructor for G_Array
-////////////////////////////////////////////////////////////
-G_Array::~G_Array() {
-  if (m_G_ArrayList) {
-    for (int i = 0; i < m_size; i++) {
-      delete m_G_ArrayList[i];
-    }
-
-    delete[] m_G_ArrayList;
-    m_G_ArrayList = NULL;
-  }
+long G_Array::getSize() {
+  return storageVector.size();
 }
 
+ArrayElem * * G_Array::getList() {
+  return &storageVector[0];
+}
 
 /////////////////////////////////////////////////////////////
 //Function: ArrayElem::setCounts
