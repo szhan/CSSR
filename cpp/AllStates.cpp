@@ -46,13 +46,11 @@ void AllStates::PrintOut(char input[], char alpha[]) {
   strcpy(output, input);
   strcat(output, "_results");
 
-  //create file streams
   ofstream outData(output, ios::out);
 
-  //open output file, if unsuccessful set boolean return value
   if (!outData) {
-    cerr << " the results output file cannot be opened " << endl;
-    success = false;
+    LOG(ERROR) << "the results output file cannot be opened";
+    success = false; // set boolean return value
   }
   else {
     //otherwise output data
@@ -84,7 +82,7 @@ void AllStates::Grow(int newsize) {
   newBuffer = new State *[newsize];
 
   if (newBuffer == NULL) {
-    cerr << "Out of memory." << endl;
+    LOG(ERROR) << "Out of memory.";
     exit(1);
   }
 
@@ -311,21 +309,16 @@ void AllStates::RemoveAncestors(char *&removalString, State *&removalState) {
 
 ///////////////////////////////////////////////////////////////////////////
 // Function: AllStates::CompareToParent
-// Purpose: checks the distribution of the new history against that of its
-//          parent state
+// Purpose: checks the distribution of the new history against that of its parent state
 // In Params: array element containing the appropriate history, distribution of
 //            that history, count of that history, length of that history
-// Out Params: boolean signifying whether the history matched its parent
-//             state's
-// In/Out Params: the history which has spawned a new distribution and
-//                the parent state of that history
+// Out Params: boolean signifying whether the history matched its parent state's
+// In/Out Params: the history which has spawned a new distribution and the parent state of that history
 // Pre- Cond: Parse tree is set, initial states  have been created,
 //            distribution for new history and for parent state are known
-// Post-Cond: history has been added to parent state if it matched, boolean
-//            has been set
+// Post-Cond: history has been added to parent state if it matched, boolean has been set
 //////////////////////////////////////////////////////////////////////////
-bool AllStates::CompareToParent(char *&removalString, State *&removalState,
-                                ArrayElem *element, double *newDist,
+bool AllStates::CompareToParent(char *&removalString, State *&removalState, ArrayElem *element, double *newDist,
                                 int length, bool match, int stringCount) {
   double sigLevel;
 
@@ -370,9 +363,7 @@ bool AllStates::CompareToParent(char *&removalString, State *&removalState,
 // Post-Cond: history has been added to non-parent state if it matched, boolean
 //            has been set
 //////////////////////////////////////////////////////////////////////////
-bool AllStates::RePartition(bool match, char *removalString,
-                            State *removalState, ArrayElem *element,
-                            double *newDist, int stringCount) {
+bool AllStates::RePartition(bool match, char *removalString, State *removalState, ArrayElem *element, double *newDist, int stringCount) {
   double sigLevel;
 
   LOG_IF(!match, DEBUG) << "\nReject the null hypothesis";
@@ -457,7 +448,7 @@ void AllStates::Determinize(ParseTree &parsetree) {
         DeAllocateArray(stateArray);
       }
     }
-  } while (isDeterministic == false || isStatesRemoved == true);
+  } while (!isDeterministic || isStatesRemoved);
 
   delete[] stateArray;
   stateArray = NULL;
@@ -476,8 +467,7 @@ void AllStates::Determinize(ParseTree &parsetree) {
 //            components
 // Post-Cond: State has been passed through at least once for determinization
 //////////////////////////////////////////////////////////////////////////
-bool AllStates::MakeNewDetStates(int stateIndex, StringElem **stringArray,
-                                 int **stateArray, int stringMax,
+bool AllStates::MakeNewDetStates(int stateIndex, StringElem **stringArray, int **stateArray, int stringMax,
                                  bool isDeterministic, ParseTree &parsetree) {
   bool isFirstPass = true;
   StringElem *temp = NULL;
@@ -502,7 +492,7 @@ bool AllStates::MakeNewDetStates(int stateIndex, StringElem **stringArray,
       isNewTransitions = false;
       isFirstPass = true;
 
-      for (int q = 0; (q < stringMax) && isNewTransitions == false; q++) {
+      for (int q = 0; (q < stringMax) && !isNewTransitions; q++) {
         //for a state which has a transition,
         if (stateArray[alphaIndex][q] != NULL_STATE) {
           childState = stateArray[alphaIndex][q];
@@ -510,7 +500,7 @@ bool AllStates::MakeNewDetStates(int stateIndex, StringElem **stringArray,
 
           //after first time through, create new
           //states for those strings with differing transitions
-          if (isFirstPass == false) {
+          if (!isFirstPass) {
             isIncreased = true;
             isDeterministic = false;
             temp = new StringElem(*stringArray[q]);
@@ -525,7 +515,7 @@ bool AllStates::MakeNewDetStates(int stateIndex, StringElem **stringArray,
 
           //if another state has been created,
           // recalculate distributions
-          if (isIncreased == true) {
+          if (isIncreased) {
             //fill arrays
             isNewTransitions = true;
             stringMax = m_StateArray[stateIndex]->getListSize();
@@ -541,7 +531,7 @@ bool AllStates::MakeNewDetStates(int stateIndex, StringElem **stringArray,
           }
         }
       }
-    } while (isNewTransitions == true);
+    } while (isNewTransitions);
   }
   return isDeterministic;
 }
@@ -549,8 +539,7 @@ bool AllStates::MakeNewDetStates(int stateIndex, StringElem **stringArray,
 
 ///////////////////////////////////////////////////////////////////////////
 // Function: AllStates::FindSimilarTransitions
-// Purpose: finds histories which transition to the same state upon the same
-//          symbol
+// Purpose: finds histories which transition to the same state upon the same symbol
 // In Params: index of state which initial history has transitioned to, 2-D
 //            array of histories in the state and the children of those
 //            histories, 2-D index of states the child histories lead to, the
@@ -559,10 +548,8 @@ bool AllStates::MakeNewDetStates(int stateIndex, StringElem **stringArray,
 //            is the first check of these values
 // Out Params: none
 // In/Out Params: none
-// Pre- Cond: States have been set based on distribution and connected
-//            components
-// Post-Cond: Given hisoty's transition has been matched to all similar
-//            transitions
+// Pre- Cond: States have been set based on distribution and connected components
+// Post-Cond: Given hisoty's transition has been matched to all similar transitions
 //////////////////////////////////////////////////////////////////////////
 void AllStates::FindSimilarTransitions(StringElem **stringArray,
                                        int **stateArray, int childState,
@@ -762,7 +749,7 @@ void AllStates::FindNSetTransitions(int state, int maxLength, char *alpha) {
     }
 
     //if no valid transitions were found, set to NULL_STATE
-    if (isNull == true || isTooLong == true) {
+    if (isNull || isTooLong) {
       m_StateArray[state]->setTransitions(k, childState);
     }
   }
@@ -801,7 +788,7 @@ void AllStates::AllocateArray(int **stateArray, int arraySize) {
     stateArray[i] = NULL;
     stateArray[i] = new int[arraySize];
     if (stateArray[i] == NULL) {
-      cerr << "Out of memory\n";
+      LOG(ERROR) << "Out of memory";
       exit(1);
     }
     for (int j = 0; j < arraySize; j++) {
@@ -954,8 +941,6 @@ bool AllStates::RemoveTransientStates(int *stateArray, bool done,
   int lowest = m_arraySize;
 
   removeAdjust = 0;
-  LOG(ERROR) << "============================================================================================";
-  LOG(ERROR) << "============================================================================================";
 
   //remove any states not found
   for (int z = 0; z < m_arraySize; z++) {
@@ -1087,8 +1072,7 @@ void AllStates::CreateChildStateArray(ParseTree &parsetree, int arraySize,
 // Pre- Cond: History which transitions to bad state has been selected.
 // Post-Cond: History is identified as unique
 //////////////////////////////////////////////////////////////////////////
-bool AllStates::CheckUniqueTrans(StringElem *transString, int removalState,
-                                 int parentState, char *alpha) {
+bool AllStates::CheckUniqueTrans(StringElem *transString, int removalState, int parentState, char *alpha) {
   bool isUnique = true;
   bool isMatch = true;
   int *transList = new int[m_distSize];
@@ -1235,8 +1219,7 @@ void AllStates::RemoveState(int index) {
 // Pre- Cond: state transitions have been determined
 // Post-Cond: state distributions have been determined
 //////////////////////////////////////////////////////////////////////////
-void AllStates::GetStateDistsMulti(ParseTree &parsetree, char input[],
-                                   SymbolToIndexMap *hashtable, bool isMulti) {
+void AllStates::GetStateDistsMulti(ParseTree &parsetree, char input[], SymbolToIndexMap *hashtable, bool isMulti) {
   char *data = parsetree.getData();
   int dataLength = strlen(data);
   int adjustedDataLength = parsetree.getDataSize();
@@ -1260,7 +1243,7 @@ void AllStates::GetStateDistsMulti(ParseTree &parsetree, char input[],
 
   //open output file, if unsuccessful set boolean return value
   if (!outData) {
-    LOG(ERROR) << " the state series output file cannot be opened " << endl;
+    LOG(ERROR) << " the state series output file cannot be opened ";
     exit(1);
   }
     //otherwise output data
@@ -1273,13 +1256,11 @@ void AllStates::GetStateDistsMulti(ParseTree &parsetree, char input[],
     symbol[1] = '\0';
 
     //initial synchronization
-    state = SynchToStatesMulti(i, k, state, maxLength, &outData, data,
-                               dataLength, synchString0);
+    state = SynchToStatesMulti(i, k, state, maxLength, &outData, data, dataLength, synchString0);
 
     //Adjust for synch time, check for end of line
     if (CheckSynchError(i, state, synchString0, parsetree, isMulti, i - 1)) {
-      state = SynchToStatesMulti(i, k, state, maxLength, &outData, data,
-                                 dataLength, synchString0);
+      state = SynchToStatesMulti(i, k, state, maxLength, &outData, data, dataLength, synchString0);
     }
 
     adjustedDataLength -= (i - 1);
@@ -1299,14 +1280,11 @@ void AllStates::GetStateDistsMulti(ParseTree &parsetree, char input[],
         k = 0;
         outData << '\n';
         diff = i;
-        state = SynchToStatesMulti(i, k, state, maxLength, &outData, data,
-                                   dataLength, synchString0);
+        state = SynchToStatesMulti(i, k, state, maxLength, &outData, data, dataLength, synchString0);
 
         //Adjust for synch time, check for end of line
-        if (CheckSynchError(i, state, synchString0, parsetree, isMulti,
-                            i - diff - 1)) {
-          state = SynchToStatesMulti(i, k, state, maxLength, &outData,
-                                     data, dataLength, synchString0);
+        if (CheckSynchError(i, state, synchString0, parsetree, isMulti, i - diff - 1)) {
+          state = SynchToStatesMulti(i, k, state, maxLength, &outData, data, dataLength, synchString0);
         }
 
         diff = i - diff - 1;
@@ -1316,22 +1294,17 @@ void AllStates::GetStateDistsMulti(ParseTree &parsetree, char input[],
         symbol[0] = data[i];
       }
 
-      state = m_StateArray[state]->getTransitions
-          (hashtable->findIndex(symbol));
+      state = m_StateArray[state]->getTransitions(hashtable->findIndex(symbol));
 
       //null transition, bad model, must resynchronize
       if (state == NULL_STATE) {
         diff = i;
         m_reSynch = true;
-        state = SynchToStatesMulti(i, k, state, maxLength, &outData, data,
-                                   dataLength, synchString0);
-
+        state = SynchToStatesMulti(i, k, state, maxLength, &outData, data, dataLength, synchString0);
 
         //Adjust for synch time, check for end of line
-        if (CheckSynchError(i, state, synchString0, parsetree, isMulti,
-                            i - diff - 1)) {
-          state = SynchToStatesMulti(i, k, state, maxLength, &outData,
-                                     data, dataLength, synchString0);
+        if (CheckSynchError(i, state, synchString0, parsetree, isMulti, i - diff - 1)) {
+          state = SynchToStatesMulti(i, k, state, maxLength, &outData, data, dataLength, synchString0);
         }
 
         i--;
@@ -1346,8 +1319,7 @@ void AllStates::GetStateDistsMulti(ParseTree &parsetree, char input[],
     outData.close();
 
     for (int q = 0; q < m_arraySize; q++) {
-      m_StateArray[q]->setFrequency((double) counts[q] / (double)
-          adjustedDataLength);
+      m_StateArray[q]->setFrequency((double) counts[q] / (double) adjustedDataLength);
     }
   }
 
@@ -1360,15 +1332,12 @@ void AllStates::GetStateDistsMulti(ParseTree &parsetree, char input[],
 
 ///////////////////////////////////////////////////////////////////////////
 // Function: AllStates::CheckSynchError
-// Purpose: checks to see whether data is synchronized yet, and removes
-//          unsynchronized data from parse tree
+// Purpose: checks to see whether data is synchronized yet, and removes unsynchronized data from parse tree
 // In Params: index of data, current state determined, boolean for multi-line mode
 // Out Params: a boolean representing whether more synchronizing is needed
 // In/Out Params: the string of unsynchronized data, parsetree
-// Pre- Cond: unsynched data is counted in parse tree, not known whether more
-//            synchronization is needed
-// Post-Cond: data is no longer counted in parse tree, have determined
-//            whehter more synchronization is needed
+// Pre- Cond: unsynched data is counted in parse tree, not known whether more synchronization is needed
+// Post-Cond: data is no longer counted in parse tree, have determined whether more synchronization is needed
 //////////////////////////////////////////////////////////////////////////
 bool AllStates::CheckSynchError(int index, int state, char *&synchString0,
                                 ParseTree &parsetree, bool isMulti, int diff) {
@@ -1380,13 +1349,10 @@ bool AllStates::CheckSynchError(int index, int state, char *&synchString0,
   if (diff > 0) {
     //if state is still null here, something is VERY wrong
     if (state == NULL_STATE && ((index >= dataSize - 1) || (!isMulti))) {
-      LOG(ERROR) << "\nError: Could not synchronize, cannot use this data. "
-      << endl
-      << "AllStates::GetStateDistsMulti\n" << endl
-      << "Note: For some reason this program cannot synchronize to a"
-      << "state at any point in the data.  "
-      << "See 'ReadMe' for details.\n"
-      << endl;
+      LOG(ERROR) << "Error: Could not synchronize, cannot use this data.";
+      LOG(ERROR) << "AllStates::GetStateDistsMulti";
+      LOG(ERROR) << "Note: For some reason this program cannot synchronize to a state at any point in the data.";
+      LOG(ERROR) << "See README for details.";
       exit(1);
     }
       //if end of line reached before synched
@@ -1408,8 +1374,7 @@ bool AllStates::CheckSynchError(int index, int state, char *&synchString0,
 
 ///////////////////////////////////////////////////////////////////////////
 // Function: AllStates::SynchtoStatesMulti
-// Purpose: steps through data and synchronizes to a state in the inferred
-//          machine
+// Purpose: steps through data and synchronizes to a state in the inferred machine
 // In Params: the max length of histories in the parse tree, the name of the
 //            data file to write the state series into, the length of the data
 // Out Params: first state synched to

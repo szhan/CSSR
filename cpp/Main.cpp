@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
     sigLevel = SIGLEVEL;
   }
   else {
-    cout << "Significance level set to " << sigLevel << ".\n";
+    LOG(INFO) << "Significance level set to " << sigLevel << ".\n";
   }
 
   //create parse tree to store all strings in data
@@ -98,10 +98,7 @@ int main(int argc, char *argv[]) {
   //tree one line at a time
   if (isMulti) {
     parsetree.ReadProcessMultiLine(alpha_file, data_file);
-    cout << "Multi-line option is set.\n"
-    << "Max line length is " << MAX_LINE_SIZE
-    << "\n";
-
+    LOG(INFO) << "Multi-line option is set. Max line length is " << MAX_LINE_SIZE;
   }
   else { //otherwise do data read first, then enter in tree
     //read in data and alphabet from files
