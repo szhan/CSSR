@@ -41,14 +41,14 @@
 // Post-Cond: hash table contains all alpha info and has returned table
 //            to calling function
 //////////////////////////////////////////////////////////////////////////
-HashTable2 *ParseTree::MakeAlphaHash() {
+SymbolToIndexMap *ParseTree::MakeAlphaHash() {
   char *symbol = new char[2];
 
   symbol[1] = '\0';
 
   for (int k = 0; k < m_alphaSize; k++) {
     symbol[0] = m_alpha[k];
-    m_alphaHash->Insert(symbol, k);
+    m_alphaHash->insert(symbol, k);
   }
   delete symbol;
   return m_alphaHash;
@@ -56,7 +56,7 @@ HashTable2 *ParseTree::MakeAlphaHash() {
 
 
 ///////////////////////////////////////////////////////////////////////////
-// Function: ParseTree::Insert
+// Function: ParseTree::insert
 // Purpose: inserts a new string into the Parse Tree
 // In Params: the string to insert and the root of the current subtree
 // Out Params: none

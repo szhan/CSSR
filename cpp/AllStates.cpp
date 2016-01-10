@@ -108,7 +108,7 @@ void AllStates::Grow(int newsize) {
 
 
 ///////////////////////////////////////////////////////////////////////////
-// Function: AllStates::Insert
+// Function: AllStates::insert
 // Purpose: adds a new array element to the specified state
 // In Params: string for new state, state in which to insert the string
 // Out Params: new state
@@ -124,7 +124,7 @@ void AllStates::Insert(ArrayElem *elem, State *state) {
 
 
 ///////////////////////////////////////////////////////////////////////////
-// Function: AllStates::Insert
+// Function: AllStates::insert
 // Purpose: adds a new state to the array of states, or attaches a string
 //          to existing state
 // In Params: array element for new state, index of insertion for elem
@@ -155,7 +155,7 @@ void AllStates::Insert(ArrayElem *elem, int index) {
 
 
 ///////////////////////////////////////////////////////////////////////////
-// Function: AllStates::Insert
+// Function: AllStates::insert
 // Purpose: adds a new state to the array of states, or attaches a string
 //          to existing state
 // In Params: string element for new state, index of insertion for elem
@@ -1236,7 +1236,7 @@ void AllStates::RemoveState(int index) {
 // Post-Cond: state distributions have been determined
 //////////////////////////////////////////////////////////////////////////
 void AllStates::GetStateDistsMulti(ParseTree &parsetree, char input[],
-                                   HashTable2 *hashtable, bool isMulti) {
+                                   SymbolToIndexMap *hashtable, bool isMulti) {
   char *data = parsetree.getData();
   int dataLength = strlen(data);
   int adjustedDataLength = parsetree.getDataSize();
@@ -1317,7 +1317,7 @@ void AllStates::GetStateDistsMulti(ParseTree &parsetree, char input[],
       }
 
       state = m_StateArray[state]->getTransitions
-          (hashtable->WhichIndex(symbol));
+          (hashtable->findIndex(symbol));
 
       //null transition, bad model, must resynchronize
       if (state == NULL_STATE) {

@@ -11,7 +11,7 @@
 #include "Common.h"
 #include "AllStates.h"
 #include "ParseTree.h"
-#include "Hash2.h"
+#include "SymbolToIndexMap.h"
 #include "Machine.h"
 
 const char *program = "CSSR";  //program name

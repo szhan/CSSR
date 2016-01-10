@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
   int max_length;
   char *data_file;
   char *alpha_file;
-  HashTable2 *alphaHash;
+  SymbolToIndexMap *alphaHash;
   bool isMulti = false;
   bool stateRemoved = false; //dummy
   Machine *machine;

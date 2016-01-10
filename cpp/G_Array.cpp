@@ -57,7 +57,7 @@ void G_Array::Grow(int newsize) {
 
 
 /////////////////////////////////////////////////////////////
-//Function: G_Array::Insert
+//Function: G_Array::insert
 //Purpose: adds new element to the growable array
 //In parameter: string, array of ints and length of
 //              array of ints
