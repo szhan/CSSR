@@ -70,6 +70,8 @@ public:
 
     ArrayElem **getList();
 
+    std::vector<ArrayElem*> getVector();
+
 protected:
     std::vector<ArrayElem*> storageVector;
 

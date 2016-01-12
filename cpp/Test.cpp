@@ -172,7 +172,9 @@ void Test::nerror(const char error_text[]) {
 std::string Test::printDistribution(std::string label, double *dist) {
   std::string memo = label + ": ";
   int i;
-  for (i = 0; i < (sizeof(dist)/ sizeof(double)) + 1; i++) {
+  LOG(DEBUG) << "THE FOLLOWING MAY BE OFF DEPENDING ON THE SIZE OF THE DIST ELEMENTS!!!";
+  LOG(DEBUG) << "pointer arrays will never guarantee size, i guess";
+  for (i = 0; i < (sizeof(dist)/ sizeof(dist[0])) + 1; i++) {
     double item = dist[i];
     std::ostringstream strs;
     strs << item;

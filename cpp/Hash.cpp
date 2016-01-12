@@ -134,8 +134,7 @@ State *HashTable::WhichState(char *string) {
 
 /////////////////////////////////////////////////////////////////
 //Function: Hash::Which StateNumber
-//Purpose: checks to see which state string is in; returns the
-//         number of the state
+//Purpose: checks to see which state string is in; returns the number of the state
 //In parameter: string to check
 //Return value: assigned number of appropriate state
 ////////////////////////////////////////////////////////////////

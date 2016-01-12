@@ -703,6 +703,7 @@ void AllStates::FindNSetTransitions(int state, int maxLength, char *alpha) {
   temp = m_StateArray[state]->getStringList();
 
   shortestLength = strlen(temp->m_string) + 2;
+  LOG(DEBUG) << "STARTING TO FIND N-SET TRANSITIONS FOR STATE " << state;
 
   for (int k = 0; k < m_distSize; k++) {
     LOG(DEBUG) << "Next for-loop across m_distSize";
@@ -711,7 +712,7 @@ void AllStates::FindNSetTransitions(int state, int maxLength, char *alpha) {
     temp = m_StateArray[state]->getStringList();
 
     while (isNull && temp && !isTooLong) {
-      LOG(DEBUG) << "Next iteration";
+      LOG(DEBUG) << "Next iteration with " << temp->toString();
       length = strlen(temp->m_string) + 2;
       childString = new char[length];
       strcpy(childString, temp->m_string);
@@ -731,7 +732,7 @@ void AllStates::FindNSetTransitions(int state, int maxLength, char *alpha) {
       LOG(DEBUG) << "create child string with symbol: " << symbol;
       strcat(childString, symbol);
 
-      LOG(DEBUG) << "determine state of child string: " << childState;
+      LOG(DEBUG) << "determine state of child string: " << childString;
       childState = m_table->WhichStateNumber(childString);
       if (childState != NULL_STATE) {
         LOG(DEBUG) << "childState is not null state, setting transition for state " << state

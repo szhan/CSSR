@@ -49,6 +49,10 @@ long G_Array::getSize() {
   return storageVector.size();
 }
 
+std::vector<ArrayElem*> G_Array::getVector() {
+  return storageVector;
+}
+
 ArrayElem * * G_Array::getList() {
   return &storageVector[0];
 }

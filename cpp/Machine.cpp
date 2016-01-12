@@ -46,19 +46,15 @@ Machine::Machine(AllStates *allstates) {
 
 ///////////////////////////////////////////////////////////////////////////
 // Function: Machine::CalcStringProbs
-// Purpose: calculates the probability of all the max length strings in the
-//          data based on the inferred machine
-// In Params: the array of states (machine), array of max length strings
-//            and their conditional frequencies, a hashtable of alpha values
-//            and their indices
+// Purpose: calculates the probability of all the max length strings in the data based on the inferred machine
+// In Params: the array of states (machine), array of max length strings and their conditional frequencies, a
+//            hashtable of alpha values and their indices
 // Out Params: a pointer to an array of the string probabilities
 // In/Out Params: none
 // Pre- Cond: array of states (the machine) has been inferred
-// Post-Cond: the string probabilities have been calculated and stored
-//            in an array
+// Post-Cond: the string probabilities have been calculated and stored in an array
 //////////////////////////////////////////////////////////////////////////
-void Machine::CalcStringProbs(G_Array *g_array, int maxLength,
-                              SymbolToIndexMap *hashtable, double stringProbs[]) {
+void Machine::CalcStringProbs(G_Array *g_array, int maxLength, SymbolToIndexMap *hashtable, double stringProbs[]) {
   int stringArraySize = g_array->getSize();
   char *string = NULL;
 
@@ -71,17 +67,14 @@ void Machine::CalcStringProbs(G_Array *g_array, int maxLength,
 
 ///////////////////////////////////////////////////////////////////////////
 // Function: Machine::CalcStringProb
-// Purpose: calculates the probability of a string in the
-//          data based on the inferred machine
-// In Params: the array of states (machine), a string and 
-//            a hashtable of alpha values and their indices
+// Purpose: calculates the probability of a string in the data based on the inferred machine
+// In Params: the array of states (machine), a string and a hashtable of alpha values and their indices
 // Out Params: the string probability
 // In/Out Params: none
 // Pre- Cond: array of states (the machine) has been inferred
-// Post-Cond: the string probability been calculated and returned to the
-//            calling function
+// Post-Cond: the string probability been calculated and returned to the calling function
 //////////////////////////////////////////////////////////////////////////
-double Machine::CalcStringProb(char *string, SymbolToIndexMap *hashtable) {
+double Machine::CalcStringProb(char *string, SymbolToIndexMap *alphabetMap) {
   double totalPerString = 0;
   double totalPerState;
   double total = 0;
@@ -96,22 +89,26 @@ double Machine::CalcStringProb(char *string, SymbolToIndexMap *hashtable) {
   int transition;
   int length = strlen(string);
 
+  LOG(DEBUG) << "start the craziness";
   for (int i = 0; i < stateArraySize; i++) {
     totalPerState = 1;
     startState = m_allstates->getState(i);
     frequency = startState->getFrequency();
     currentState = startState;
     isNullTrans = false;
+    LOG(DEBUG) << "STATE " << i;
     for (int j = 0; j < length && !isNullTrans; j++) {
       //get index of next alpha symbol
       symbol[0] = string[j];
-      index = hashtable->findIndex(symbol);
+      index = alphabetMap->findIndex(symbol);
+      LOG(DEBUG) << "j is " << j << " - " << symbol << " @ " << index;
       //get transition probability from current state
-      totalPerState = totalPerState * (currentState->
-          getCurrentDist())[index];
+      totalPerState = totalPerState * (currentState-> getCurrentDist())[index];
+      LOG(DEBUG) << totalPerState;
 
       //make transition
       transition = currentState->getTransitions(index);
+      LOG(DEBUG) << "transitioning to: " << transition;
       if (transition == NULL_STATE) {
         totalPerState = 0.0;
         isNullTrans = true;
@@ -358,13 +355,11 @@ double Machine::CalcRelEntRateAlpha(double stringProb,
 ///////////////////////////////////////////////////////////////////////////
 // Function: Machine::CalcVariation
 // Purpose: calculates the variation rate based on the inferred machine
-// In Params: parstree of strings, hashtable of alpha and index values, 
-//            and boolean denoting multi-string input
+// In Params: parsetree of strings, hashtable of alpha and index values, and boolean denoting multi-string input
 // Out Params: none
 // In/Out Params: none
 // Pre- Cond: array of states (the machine) has been inferred
-// Post-Cond: the relative entropy rate has been calculated and stored in the 
-//            machine class as a member variable
+// Post-Cond: the relative entropy rate has been calculated and stored in the machine class as a member variable
 //////////////////////////////////////////////////////////////////////////
 void Machine::CalcVariation(ParseTree &parsetree, SymbolToIndexMap *hashtable, bool isMulti) {
   G_Array g_array;
@@ -372,8 +367,7 @@ void Machine::CalcVariation(ParseTree &parsetree, SymbolToIndexMap *hashtable, b
   int alphaSize = parsetree.getAlphaSize();
   int maxLength = parsetree.getMaxLength();
   int adjustedDataSize = parsetree.getAdjustedDataSize();
-  // We can't begin a substring of length maxLength at the last (maxLength-1)
-  // positions in the data string
+  // We can't begin a substring of length maxLength at the last (maxLength-1) positions in the data string
   int *counts;
   double histFrequency;
   parsetree.FindStrings(maxLength, &g_array);
@@ -387,25 +381,42 @@ void Machine::CalcVariation(ParseTree &parsetree, SymbolToIndexMap *hashtable, b
   //determine the inferred distributions of max - 1 length strings
   CalcStringProbs(&g_array, maxLength, hashtable, stringProbs);
 
+  LOG(DEBUG) << "generated array of elements:";
+  for (auto & arrEl : g_array.getVector()) {
+    LOG(DEBUG) << arrEl->toString();
+  }
+  LOG(DEBUG) << Test::printDistribution("stringProbs", stringProbs);
+  LOG(DEBUG) << "stringProbs should be of size " << size;
+
+  LOG(DEBUG) << "starting calculation";
   //for each string
   for (int i = 0; i < size; i++) {
     counts = list[i]->getCounts();
     histFrequency = 0;
     diffHist = 0;
+    LOG(DEBUG) << "list[" << i << "]: " << list[i]->toString();
+    LOG(DEBUG) << "histFreq is 0";
 
     //for each alpha value/symbol
     for (int k = 0; k < alphaSize; k++) {
       //get distribution for data
+      LOG(DEBUG) << "((double) counts[" << k << "]) / ((double) adjustedDataSize): " << counts[k] << " / " << adjustedDataSize;
       dataDist = ((double) counts[k]) / ((double) adjustedDataSize);
       histFrequency += dataDist;
+      LOG(DEBUG) << "histFreq is now: " << histFrequency;
     }
 
     //take the differnece between the
     //inferred frequency and data frequency
     diffHist = fabs(histFrequency - stringProbs[i]);
+    LOG(DEBUG) << "histFrequency: " << histFrequency;
+    LOG(DEBUG) << "stringProbs[" << i << "]: " << stringProbs[i];
+    LOG(DEBUG) << "diffHist: " << diffHist;
     total += diffHist;
+    LOG(DEBUG) << "total: " << total;
   }
   m_variation = total;
+  LOG(DEBUG) << "m_variation: " << total;
   delete[] stringProbs;
 }
 

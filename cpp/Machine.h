@@ -26,7 +26,7 @@ public:
         SymbolToIndexMap *hashtable,
         double stringProbs[]);
 
-    double CalcStringProb(char *string, SymbolToIndexMap *hashtable);
+    double CalcStringProb(char *string, SymbolToIndexMap *alphabetMap);
 
     void CalcRelEnt(ParseTree &parsetree, SymbolToIndexMap *hashtable, bool isMulti);
 
