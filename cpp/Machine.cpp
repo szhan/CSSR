@@ -89,26 +89,21 @@ double Machine::CalcStringProb(char *string, SymbolToIndexMap *alphabetMap) {
   int transition;
   int length = strlen(string);
 
-  LOG(DEBUG) << "start the craziness";
   for (int i = 0; i < stateArraySize; i++) {
     totalPerState = 1;
     startState = m_allstates->getState(i);
     frequency = startState->getFrequency();
     currentState = startState;
     isNullTrans = false;
-    LOG(DEBUG) << "STATE " << i;
     for (int j = 0; j < length && !isNullTrans; j++) {
       //get index of next alpha symbol
       symbol[0] = string[j];
       index = alphabetMap->findIndex(symbol);
-      LOG(DEBUG) << "j is " << j << " - " << symbol << " @ " << index;
       //get transition probability from current state
       totalPerState = totalPerState * (currentState-> getCurrentDist())[index];
-      LOG(DEBUG) << totalPerState;
 
       //make transition
       transition = currentState->getTransitions(index);
-      LOG(DEBUG) << "transitioning to: " << transition;
       if (transition == NULL_STATE) {
         totalPerState = 0.0;
         isNullTrans = true;
@@ -385,38 +380,27 @@ void Machine::CalcVariation(ParseTree &parsetree, SymbolToIndexMap *hashtable, b
   for (auto & arrEl : g_array.getVector()) {
     LOG(DEBUG) << arrEl->toString();
   }
-  LOG(DEBUG) << Test::printDistribution("stringProbs", stringProbs);
-  LOG(DEBUG) << "stringProbs should be of size " << size;
 
-  LOG(DEBUG) << "starting calculation";
   //for each string
   for (int i = 0; i < size; i++) {
     counts = list[i]->getCounts();
     histFrequency = 0;
     diffHist = 0;
-    LOG(DEBUG) << "list[" << i << "]: " << list[i]->toString();
-    LOG(DEBUG) << "histFreq is 0";
 
     //for each alpha value/symbol
     for (int k = 0; k < alphaSize; k++) {
       //get distribution for data
-      LOG(DEBUG) << "((double) counts[" << k << "]) / ((double) adjustedDataSize): " << counts[k] << " / " << adjustedDataSize;
       dataDist = ((double) counts[k]) / ((double) adjustedDataSize);
       histFrequency += dataDist;
-      LOG(DEBUG) << "histFreq is now: " << histFrequency;
     }
 
     //take the differnece between the
     //inferred frequency and data frequency
     diffHist = fabs(histFrequency - stringProbs[i]);
-    LOG(DEBUG) << "histFrequency: " << histFrequency;
-    LOG(DEBUG) << "stringProbs[" << i << "]: " << stringProbs[i];
-    LOG(DEBUG) << "diffHist: " << diffHist;
+
     total += diffHist;
-    LOG(DEBUG) << "total: " << total;
   }
   m_variation = total;
-  LOG(DEBUG) << "m_variation: " << total;
   delete[] stringProbs;
 }
 

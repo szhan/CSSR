@@ -211,15 +211,12 @@ void AllStates::CalcNewDist(int length, ParseTree &parsetree) {
 
   //for all of the strings
   for (int i = 0; i < listSize; i++) {
-    LOG(DEBUG) << "===========================================";
     match = false;
     stringCount = 0;
     listElem = list[i];
-    LOG(DEBUG) << listElem -> toString();
 
     //calculate new distribution
     for (int k = 0; k < m_distSize; k++) {
-      LOG(DEBUG) << listElem->getCounts()[k];
       newDist[k] = (double) ((listElem->getCounts())[k]);
       stringCount += (listElem->getCounts())[k];
     }
@@ -230,7 +227,6 @@ void AllStates::CalcNewDist(int length, ParseTree &parsetree) {
     for (int j = 0; j < m_distSize; j++) {
       newDist[j] = newDist[j] / (double) stringCount;
     }
-    LOG(DEBUG) << Test::printDistribution(listElem->getHistory() + " dist", newDist);
 
     //check whether new distribution matches that of parent state
     match = CompareToParent(removalString, removalState, list[i], newDist, length, match, stringCount);
@@ -241,20 +237,16 @@ void AllStates::CalcNewDist(int length, ParseTree &parsetree) {
     //if there were no matches make new state
     if (!match) {
       std::string stateStr (removalString);
-      LOG(DEBUG) << "Creating new state with: " + list[i]->getHistory();
 
       //insert new string
       Insert(list[i], m_arraySize);
 
       //calculate probability distribution
       m_StateArray[m_arraySize - 1]->CalcCurrentDist();
-      LOG(DEBUG) << "Generated State:";
-      m_StateArray[m_arraySize - 1]->logState(parsetree.getAlpha());
 
 
       //remove ancestor-strings when progeny
       //creates new state
-      LOG(DEBUG) << "removing ancestors with:";
       RemoveAncestors(removalString, removalState);
     }
   }
@@ -291,11 +283,9 @@ void AllStates::RemoveAncestors(char *&removalString, State *&removalState) {
       m_table->RemoveString(removalString);
       //if state is empty remove it
       if (!removalState->getStringList()) {
-        LOG(DEBUG) << "RemoveState(removalState->getNumber())";
         RemoveState(removalState->getNumber());
       }
       else {
-        LOG(DEBUG) << "removalState->CalcCurrentDist()";
         //re-caculate ancestor-state's distribution
         removalState->CalcCurrentDist();
       }
@@ -703,60 +693,47 @@ void AllStates::FindNSetTransitions(int state, int maxLength, char *alpha) {
   temp = m_StateArray[state]->getStringList();
 
   shortestLength = strlen(temp->m_string) + 2;
-  LOG(DEBUG) << "STARTING TO FIND N-SET TRANSITIONS FOR STATE " << state;
 
   for (int k = 0; k < m_distSize; k++) {
-    LOG(DEBUG) << "Next for-loop across m_distSize";
     isTooLong = false;
     isNull = true;
     temp = m_StateArray[state]->getStringList();
 
     while (isNull && temp && !isTooLong) {
-      LOG(DEBUG) << "Next iteration with " << temp->toString();
       length = strlen(temp->m_string) + 2;
       childString = new char[length];
       strcpy(childString, temp->m_string);
 
       if ((length == maxLength + 2) && (shortestLength < (maxLength + 2))) {
-        LOG(DEBUG) << "String exceeds max length allowed";
         childState = NULL_STATE;
         isTooLong = true;
       }
       if (length > maxLength + 1) {
-        LOG(DEBUG) << "???";
         childString++;
       }
 
       symbol[0] = alpha[k];
 
-      LOG(DEBUG) << "create child string with symbol: " << symbol;
       strcat(childString, symbol);
 
-      LOG(DEBUG) << "determine state of child string: " << childString;
       childState = m_table->WhichStateNumber(childString);
       if (childState != NULL_STATE) {
-        LOG(DEBUG) << "childState is not null state, setting transition for state " << state
-                   << ": {postition: " << k << ", childState: " << childState << "}";
         m_StateArray[state]->setTransitions (k, childState);
         isNull = false;
       }
 
       if (isNull && temp) {
-        LOG(DEBUG) << "isNull && stateStringElem";
         temp = temp->m_nextPtr;
       }
 
       if (length > maxLength + 1) {
-        LOG(DEBUG) << "length > maxLength + 1";
         childString--;
       }
 
-      LOG(DEBUG) << "deleting childState";
       delete[] childString;
     }
 
     if (isNull || isTooLong) {
-      LOG(DEBUG) << "no valid transitions were found, setting to NULL_STATE";
       m_StateArray[state]->setTransitions(k, childState);
     }
   }
@@ -795,7 +772,6 @@ void AllStates::AllocateArray(int **stateArray, int arraySize) {
     stateArray[i] = NULL;
     stateArray[i] = new int[arraySize];
     if (stateArray[i] == NULL) {
-      LOG(ERROR) << "Out of memory";
       exit(1);
     }
     for (int j = 0; j < arraySize; j++) {
@@ -1250,7 +1226,6 @@ void AllStates::GetStateDistsMulti(ParseTree &parsetree, char input[], SymbolToI
 
   //open output file, if unsuccessful set boolean return value
   if (!outData) {
-    LOG(ERROR) << " the state series output file cannot be opened ";
     exit(1);
   }
     //otherwise output data
@@ -1356,10 +1331,6 @@ bool AllStates::CheckSynchError(int index, int state, char *&synchString0,
   if (diff > 0) {
     //if state is still null here, something is VERY wrong
     if (state == NULL_STATE && ((index >= dataSize - 1) || (!isMulti))) {
-      LOG(ERROR) << "Error: Could not synchronize, cannot use this data.";
-      LOG(ERROR) << "AllStates::GetStateDistsMulti";
-      LOG(ERROR) << "Note: For some reason this program cannot synchronize to a state at any point in the data.";
-      LOG(ERROR) << "See README for details.";
       exit(1);
     }
       //if end of line reached before synched
