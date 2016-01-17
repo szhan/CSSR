@@ -110,7 +110,7 @@ void HashTable::Insert(StringElem *elem, State *state) {
 //Return value: pointer to address of appropriate state
 ////////////////////////////////////////////////////////////////
 State *HashTable::WhichState(char *string) {
-  if ((string != NULL) && (string[0] == '\0')) {
+  if (string == NULL) {
     cerr << "Cannot check matching state for empty string\n";
     exit(1);
   }
@@ -139,7 +139,7 @@ State *HashTable::WhichState(char *string) {
 //Return value: assigned number of appropriate state
 ////////////////////////////////////////////////////////////////
 int HashTable::WhichStateNumber(char *string) {
-  if ((string != NULL) && (string[0] == '\0')) {
+  if (string == NULL) {
     cerr << "Cannot check matching state for empty string\n";
     exit(1);
   }
@@ -191,7 +191,7 @@ void HashTable::Print() {
 
 
 void HashTable::RemoveString(char *string) {
-  if ((string != NULL) && (string[0] == '\0')) {
+  if (string == NULL) {
     exit(1);
   }
 

@@ -179,7 +179,7 @@ void ParseTree::FindStrings(TreeNode *root, int length, char *parentString, G_Ar
   else if (length < 2) {
     //determine length of parentString
     int stringLength = 0;
-    if (parentString != NULL && parentString[0] != '\0') {
+    if (parentString != NULL) {
       stringLength = strlen(parentString);
     }
 
@@ -229,7 +229,7 @@ void ParseTree::FindStrings(TreeNode *root, int length, char *parentString, G_Ar
   else { //check correct level in all possible branches
     //determine length of parentString
     int stringLength2 = 0;
-    if (parentString != NULL && parentString[0] != '\0') {
+    if (parentString != NULL) {
       stringLength2 = strlen(parentString);
     }
 

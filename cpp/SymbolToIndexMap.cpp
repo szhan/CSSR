@@ -44,7 +44,7 @@ void SymbolToIndexMap::insert(char *string, int index) {
  * @return            The integer which points to the appropriate state.
  */
 int SymbolToIndexMap::findIndex(char *string) {
-  if ((string != NULL) && (string[0] == '\0')) {
+  if (string == NULL) {
     cerr << "Cannot check matching state for empty string\n";
     exit(1);
   }
