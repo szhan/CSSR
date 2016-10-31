@@ -1,64 +1,26 @@
 package com.typeclassified.hmm.cssr.test
 
-import com.typeclassified.hmm.cssr.parse.Leaf
-import com.typeclassified.hmm.cssr.state.EquivalenceClass
+import com.typeclassified.hmm.cssr.shared.{EmpiricalDistribution, Probablistic, Level, Logging}
 import com.typeclassified.hmm.cssr.test.hypothesis.{KolmogorovSmirnov=>KS}
-import com.typesafe.scalalogging.{LazyLogging, Logger}
-import org.slf4j.LoggerFactory
 
-import scala.collection.mutable.ListBuffer
+object Test extends Logging {
+  override def loglevel() = Level.OFF
 
-object Test extends LazyLogging {
-
-  def test(S: ListBuffer[EquivalenceClass], aXt: Leaf, parent:Leaf, s: EquivalenceClass, sig: Double): Unit = {
-    logger.debug(s"Total number of states: ${S.length}")
-    if (nullHypothesis(s, aXt, sig) >= sig) {
-      if (!s.histories.contains(aXt)) {
-        aXt.changeEquivalenceClass(s)
-        s.addHistory(aXt)
-      }
-    } else {
-      logger.debug("Rejecting null hypothesis")
-      val sStar: Option[EquivalenceClass] = restrictedHypothesesTesting(S.toList, s, aXt, sig)
-      if (sStar.nonEmpty) {
-        move(aXt, s, parent, sStar.get, false)
-      } else {
-        logger.info(s"Generating a new equivalence class with: ${aXt.observation}")
-        var sNew = EquivalenceClass()
-        S += sNew
-        move(aXt, s, parent, sNew, true)
-      }
-    }
-    S --= S.filter(_.histories.isEmpty)
+  def nullHypothesis(state: EmpiricalDistribution, testCase: Probablistic, sig:Double): Double = {
+    debug("Testing: " + testCase.toString)
+    debug(s"Have state information:")
+    debug("======================================")
+    state.histories.foreach{ h => debug(h.toString) }
+    debug("======================================")
+    debug(s"Running test -- Count1: ${state.totalCounts} Count2: ${testCase.totalCounts}")
+    debug(s"state: ${state.distribution.toString}\t\tfreq1: ${state.frequency.toString()}")
+    debug(s" leaf: ${testCase.distribution.toString}\t\tfreq2: ${testCase.frequency.toString()}")
+    nullHypothesis(state, testCase, sig)
   }
 
-  def nullHypothesis(s: EquivalenceClass, aXt: Leaf, sig:Double): Double = {
-    logger.debug("Testing: " + aXt.toString)
-    logger.debug(s"Have state information:")
-    logger.debug("======================================")
-    s.histories.foreach{ h => logger.debug(h.toString) }
-    logger.debug("======================================")
-    logger.debug(s"Running test -- Count1: ${s.totalCounts} Count2: ${aXt.totalCounts}")
-    logger.debug(s"state: ${s.distribution.toString}\t\tfreq1: ${s.frequency.toString()}")
-    logger.debug(s" leaf: ${aXt.distribution.toString}\t\tfreq2: ${aXt.frequency.toString()}")
-    KS.kstwo(s.distribution, s.totalCounts, aXt.distribution, aXt.totalCounts)
+  def nullHypothesis(state: Probablistic, testCase: Probablistic, sig:Double): Double = {
+    KS.kstwo(state.distribution, state.totalCounts, testCase.distribution, testCase.totalCounts)
   }
 
-  def restrictedHypothesesTesting( S: List[EquivalenceClass], s: EquivalenceClass, ax: Leaf, sig: Double )
-  :Option[EquivalenceClass] = {
-    val SStar = S.filter(_ ne s)
-    for (sStar <- SStar) {
-      if (nullHypothesis(sStar, ax, sig) >= sig) {
-        return Option(sStar)
-      }
-    }
-    None
-  }
-
-  def move(x: Leaf, from: EquivalenceClass, parent:Leaf, to: EquivalenceClass, rmParent:Boolean=true, paint:Boolean = true): Unit = {
-    x.changeEquivalenceClass(to, paint)
-    to.addHistory(x)
-    from.rmHistory(x) // remove history as we have moved to "painting" the parse tree
-    if (parent != null && rmParent) from.rmHistory(parent)// remove ancestors as we need to disambiguate if progeny
-  }
+  def test(state: Probablistic, testCase: Probablistic, sig:Double): Boolean = nullHypothesis(state, testCase, sig) >= sig
 }

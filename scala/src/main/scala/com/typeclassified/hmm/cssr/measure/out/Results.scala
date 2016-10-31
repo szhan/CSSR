@@ -3,45 +3,78 @@ package com.typeclassified.hmm.cssr.measure.out
 import java.io._
 
 import _root_.com.typeclassified.hmm.cssr.cli.Config
-import com.typeclassified.hmm.cssr.parse.{Alphabet, Tree}
+import com.typeclassified.hmm.cssr.CSSR.TransitionState
+import com.typeclassified.hmm.cssr.parse.Alphabet
 import com.typeclassified.hmm.cssr.state.{AllStates, Machine}
+import com.typeclassified.hmm.cssr.trees.ParseTree
 
-class Results (config:Config, alphabet: Alphabet, tree:Tree, machine: Machine, allStates: AllStates) {
-  val metadata:String = "Metadata\n=======================\n" + config.toString + "\n"
+class Results ( val config: Config,
+                val alphabet: Alphabet,
+                val tree:ParseTree,
+                val machine: Machine,
+                val allStates: AllStates,
+                val parseString:String,
+                val loopingString:String,
+                val refinedString:String,
+                stateLabels: Boolean
+              ) {
 
-  protected val dotMeta:String = s"""digraph ${config.dataFile.getCanonicalPath} {
-                              |size = \"6,8.5\";
-                              |ratio = \"fill\";
-                              |node [shape = circle];
-                              |node [fontsize = 24];
-                              |edge [fontsize = 24];
-                              |""".stripMargin
+  val metadata:String =
+    s"""Metadata
+        |=======================
+        |${config.toString}
+        |""".stripMargin
+
+  protected val dotMeta:String =
+    s"""digraph "${config.dataFile.getCanonicalPath}" {
+        |size = \"6,8.5\";
+        |ratio = \"fill\";
+        |node [shape = circle];
+        |node [fontsize = 24];
+        |edge [fontsize = 24];
+        |""".stripMargin
+
+  def idxAsStr(i:Int):String = {
+    if (stateLabels) {
+      String.valueOf(i).map(c => (c.toInt + 17).toChar)
+    } else {
+      String.valueOf(i)
+    }
+  }
 
   val dotInfo: String = dotMeta + allStates.states
     .zipWithIndex
     .map {
       case (state, i) =>
+        val sTransitions:Map[Char, TransitionState] = allStates.transitionMap(state)
         state.distribution
           .toArray
           .view.zipWithIndex
           .foldLeft[String]("") {
           case (memo, (prob, k)) if prob <= 0 => memo
-          case (memo, (prob, k)) => memo + s"""$i -> $k [label = "${alphabet.raw(k)}: ${"%.7f".format(prob)}"];\n"""
+          case (memo, (prob, k)) =>
+            val symbol:Char = alphabet.raw(k)
+            sTransitions(symbol) match {
+              case None => memo
+              case Some(transition) =>
+                memo + s"""${idxAsStr(i)} -> ${idxAsStr(allStates.stateMap(transition))} [label = "$symbol: ${"%.7f".format(prob)}"];\n"""
+            }
         }
     }
-    .reduceLeft(_+_) + "\n"
+    .reduceLeft(_+_) + "}\n\n"
 
-  val measurements: String = s"""Results
-                                 |=======================
-                                 |Alphabet Size: ${alphabet.length}
-                                 |Data Size: ${tree.adjustedDataSize}
-                                 |Relative Entropy: ${machine.relativeEntropy}
-                                 |Relative Entropy Rate: ${machine.relativeEntropyRate}
-                                 |Statistical Complexity: ${machine.statisticalComplexity}
-                                 |Entropy Rate: ${machine.entropyRate}
-                                 |Variation: ${machine.variation}
-                                 |Number of Inferred States: ${allStates.states.length}\n
-                                 |""".stripMargin
+  val measurements: String =
+    s"""Results
+        |=======================
+        |Alphabet Size: ${alphabet.length}
+        |Data Size: ${tree.adjustedDataSize}
+        |Relative Entropy: ${machine.relativeEntropy}
+        |Relative Entropy Rate: ${machine.relativeEntropyRate}
+        |Statistical Complexity: ${machine.statisticalComplexity}
+        |Entropy Rate: ${machine.entropyRate}
+        |Variation: ${machine.variation}
+        |Number of Inferred States: ${allStates.states.length}\n
+        |""".stripMargin
 
   val stateDetails: String = allStates.states
     .view
@@ -49,9 +82,9 @@ class Results (config:Config, alphabet: Alphabet, tree:Tree, machine: Machine, a
     .map {
       case (eqClass, i) =>
         val transitions = allStates.transitions(i)
-          .map{ case (c, s) => c -> s.flatMap{ s=> Option("State " + allStates.stateMap(s))} }
+          .map{ case (c, s) => c -> s.flatMap{ s=> Option("State " + idxAsStr(allStates.stateMap(s)))} }
 
-        s"State $i:\n" +
+        s"State ${idxAsStr(i)}:\n" +
           eqClass.histories.toArray.sortBy(_.observed).map{_.toString}.mkString("\n") +
           s"""
              |Probability Dist: ${eqClass.distribution.toString()}
@@ -63,7 +96,8 @@ class Results (config:Config, alphabet: Alphabet, tree:Tree, machine: Machine, a
     }
     .mkString("\n")
 
-  protected def outStream(dataFile:File = null, fileName:String = "_out"):OutputStream = Option(dataFile) match {
+  protected def outStream(dataFile:File = null, fileName:String = "_out")
+  :OutputStream = Option(dataFile) match {
     case Some(name) => new FileOutputStream(new File(dataFile.getAbsolutePath + fileName) )
     case None => System.out
   }
@@ -75,16 +109,18 @@ class Results (config:Config, alphabet: Alphabet, tree:Tree, machine: Machine, a
     }
   }
 
-  def out(file:File = null):Unit = {
+  def out(file:File = null):Results = {
     saferWriteOp(outStream(file, "_info"), (measurementsOut) => {
       measurementsOut.print(metadata)
       measurementsOut.print(measurements)
     })
-
     saferWriteOp(outStream(file, "_inf.dot"), (dotOut) => dotOut.print(dotInfo) )
-
     saferWriteOp(outStream(file, "_results"), (statesOut) => statesOut.print(stateDetails) )
-
+    saferWriteOp(outStream(file, "_parsetree"), (statesOut) => statesOut.print(parseString) )
+    saferWriteOp(outStream(file, "_loopingtree_pre_refinement"), (statesOut) => statesOut.print(loopingString) )
+    saferWriteOp(outStream(file, "_loopingtree_post_refinement"), (statesOut) => statesOut.print(refinedString) )
     // val statesOut = outStream(file, "_state_series")
+
+    this
   }
 }
