@@ -10,6 +10,8 @@ scalaVersion := "2.11.7"
 
 resolvers += Resolver.sonatypeRepo("public")
 
+test in assembly := {}
+
 libraryDependencies ++= Seq(
   // CLI:
   "ch.qos.logback"             %  "logback-classic" % "1.1.3", // add logging framework
