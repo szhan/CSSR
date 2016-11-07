@@ -337,11 +337,36 @@ object CSSR extends Logging {
           }
         }
 
+      def isSubsetFrom(tss:Set[Set[Terminal]])(ts:Set[Terminal]):Option[(Set[Terminal], Set[Terminal])] = {
+        tss.foldRight(Option.empty[(Set[Terminal], Set[Terminal])])((_ts, set) => {
+          if (set.nonEmpty) set else {
+            if (ts.subsetOf(_ts)) {
+              Some((_ts, _ts))
+            } else if (_ts.subsetOf(ts) || ts == _ts) {
+              Some((_ts, ts))
+            } else {
+              None
+            }
+          }
+        })
+      }
+
+      def grouper(tPair:(Terminal, Set[Terminal]), ts:Map[Set[Terminal], Set[Terminal]]):Map[Set[Terminal], Set[Terminal]] = {
+        val (t, tTrans) = tPair
+        val subset:Option[(Set[Terminal], Set[Terminal])] = isSubsetFrom(ts.keySet)(tTrans)
+        if (subset.nonEmpty) {
+          val (k:Set[Terminal], v:Set[Terminal]) = subset.get
+          val newTs = ts + (k -> ts(k).+(t))
+          if (ts.keySet.contains(k)) newTs else newTs - k
+        } else {
+          ts + (tTrans -> Set(t))
+        }
+      }
+
       val transitionGroups:Iterable[Set[Terminal]] = transitions
         // group by transitions
-        .groupBy{ _._2 }
+        .foldRight(Map[Set[Terminal], Set[Terminal]]())(grouper)
         // throw away transitions, look only at grouped terminals
-        .mapValues(_.keySet)
         .values
         // split groups by matching distribution
 
