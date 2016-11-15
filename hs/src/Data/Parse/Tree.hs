@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedLists #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RankNTypes #-}
@@ -10,6 +11,7 @@ import GHC.TypeLits
 import Data.Proxy
 import Control.Monad.ST
 import Data.STRef
+import Data.Function (on)
 import Control.Exception (assert)
 import qualified Data.HashSet as HS
 import qualified Data.HashMap.Strict as HM
@@ -27,9 +29,18 @@ data ParseTree = ParseTree
   } deriving (Show, Eq)
 
 data PLeaf = PLeaf
-  { _body :: PLeafBody
-  , _children :: Children
-  } deriving (Show, Eq)
+  { _body :: ST PLeafBody PLeafBody
+  , _children ::  Children
+  }
+
+instance Show PLeaf where
+  show lf = "PLeaf {" ++ show (_body lf) ++ show (_children lf) ++  "}"
+
+instance Eq PLeaf where
+  a == b = (a `bodyEq` b) && (a `childrenEq` b)
+    where
+      bodyEq = (==) `on` (runST . _body)
+      childrenEq = (==) `on` _children
 
 data PLeafBody = PLeafBody
   { _obs       :: Vector Event
@@ -160,24 +171,25 @@ mkRoot = PLeaf (PLeafBody [] 0 mempty) mempty
 mkLeaf :: Vector Event -> PLeaf
 mkLeaf obs = PLeaf (PLeafBody obs 0 mempty) mempty
 
+-- FIXME: use pipes instead of loading the entire file into memory
 buildTree :: Int -> DataFileContents -> ParseTree
-buildTree n' chars = ParseTree n' root
+buildTree n' (V.filter isValid -> chars) = ParseTree n' root
   where
     n :: Int
     n = n' + 1
 
     root :: PLeaf
-    root = V.ifoldr reducer mkRoot chars
+    root = V.ifoldr ireducer mkRoot chars
 
-    reducer :: Int -> Event -> PLeaf -> PLeaf
-    reducer i _ tree = tree & over (path (sliceEvents i) . count) (+1)
+    ireducer :: Int -> Event -> PLeaf -> PLeaf
+    ireducer i _ tree = tree & over (path (sliceEvents i) . count) (+1)
 
     sliceEvents :: Int -> Vector Event
     sliceEvents i
-      | i + n < length chars = V.slice i n . V.filter isValid $ chars
-      | otherwise = V.slice i (length chars - i) . V.filter isValid $ chars
+      | i + n < length chars = V.slice i                 n  chars
+      | otherwise            = V.slice i (length chars - i) chars
 
-    isValid :: Event -> Bool
-    isValid e = not $ HS.member e ['\r', '\n']
+isValid :: Event -> Bool
+isValid e = not $ HS.member e ['\r', '\n']
 
 
