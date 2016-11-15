@@ -9,7 +9,7 @@ github:      stites/CSSR
 license:     BSD
 copyright:   2016-2017
 
-ghc-options: -threaded -rtsopts -with-rtsopts=-N -fno-warn-hi-shadowing
+ghc-options: -fno-warn-hi-shadowing -Wall
 
 default-extensions:
   #  - NoImplicitPrelude # maybe we can use subhask at some point
@@ -52,4 +52,14 @@ tests:
       - cssr
       - hspec
       - QuickCheck
+
+benchmarks:
+  bench:
+    source-dirs: bench
+    main: Main.hs
+    dependencies:
+      - cssr
+      - criterion
+      - deepseq
+    ghc-options: -O2
 
