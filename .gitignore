@@ -25,6 +25,8 @@ data*.tmp*
 *.tar.gz
 *EP_*
 EP.dot
+logs
+*.dot
 
 # Vim
 # ==================
@@ -35,6 +37,7 @@ EP.dot
 # which may include possible citations and references
 resources
 .stites
+paper
 
 # Long-term git worktrees
 # ==================
@@ -42,5 +45,3 @@ resources
 cpp-refactor/
 cpp-refactor-std-lib/
 
-logs
-*.dot
