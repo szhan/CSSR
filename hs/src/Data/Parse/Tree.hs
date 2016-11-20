@@ -29,18 +29,18 @@ data ParseTree = ParseTree
   } deriving (Show, Eq)
 
 data PLeaf = PLeaf
-  { _body :: ST PLeafBody PLeafBody
-  , _children ::  Children
-  }
+  { _body :: PLeafBody
+  , _children :: Children
+  } deriving (Eq)
 
 instance Show PLeaf where
   show lf = "PLeaf {" ++ show (_body lf) ++ show (_children lf) ++  "}"
 
-instance Eq PLeaf where
-  a == b = (a `bodyEq` b) && (a `childrenEq` b)
-    where
-      bodyEq = (==) `on` (runST . _body)
-      childrenEq = (==) `on` _children
+-- instance Eq PLeaf where
+--   a == b = (a `bodyEq` b) && (a `childrenEq` b)
+--     where
+--       bodyEq = (==) `on` (runST . _body)
+--       childrenEq = (==) `on` _children
 
 data PLeafBody = PLeafBody
   { _obs       :: Vector Event
