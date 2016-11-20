@@ -128,11 +128,8 @@ path events fn = go 0
             childs = HM.singleton c <$> buildNew (depth + 1)
 
 
-type Event = Char
 type Children = HashMap Event PLeaf
 type Parent = Maybe PLeaf
-type DataFileContents = Vector Event
-
 
 -- data LoopingTree = LoopingTree
 --   { root :: LLeaf

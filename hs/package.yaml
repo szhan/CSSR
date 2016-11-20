@@ -32,6 +32,7 @@ dependencies:
   - vector
   - microlens-platform
   - microlens
+  - hashtables
 
 library:
   source-dirs: src
