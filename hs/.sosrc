@@ -1,6 +1,3 @@
-- pattern: paper/new-procedure.tex
-  command: pdflatex paper/new-procedure.tex
-
 - pattern: .*\.hs
   command: codex update --force
 

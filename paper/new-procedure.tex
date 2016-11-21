@@ -1,0 +1,53 @@
+\documentclass{article}
+%\documentclass[aos,preprint]{imsart}
+\usepackage{amsmath,amsfonts,amssymb,graphics,amscd}
+\usepackage[square]{natbib}
+\usepackage{hyperref}
+\usepackage{subfiles}
+\newcommand{\Prob}[1]{\ensuremath{\mathrm{Pr}\left( #1 \right) }}
+\newcommand{\Expect}[1]{\ensuremath{\mathbb{E}\left[ #1 \right]}}
+\newcommand{\ProcAlphabet}{\ensuremath{\mathcal{A}}}
+\newcommand{\StateSet}{\ensuremath{\mathcal{S}}}
+\newcommand{\indep}{\ensuremath{\rotatebox{90}{$\models$}}}
+\newcommand{\synctime}{\ensuremath{\tau_{\mathrm{synch}}}}
+\newcommand{\match}{\ensuremath{\mathrm{match}}}
+\newcommand{\homog}{\ensuremath{\mathrm{homog}}}
+\newcommand{\excisable}{\ensuremath{\mathrm{excisable}}}
+\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}
+\newtheorem{lemma}{Lemma}
+\begin{document}
+\title{ROCS: A Discovery Algorithm for Predictive States}
+\author{Kristina Lisa Klinkner, Alessandro Rinaldo, Cosma Rohilla Shalizi\\
+{\small alphabetical order, notes by CRS}}
+\date{Notes begun 6 April 2009, this draft begun 14 May 2010, last \LaTeX 'd \today}
+\maketitle
+\begin{abstract}
+  ROCS stands for ``Reconstruction of Causal States''; it is a successor to the
+  CSSR (causal state splitting reconstruction) algorithm.  Otherwise, the
+  abstract is to come.
+\end{abstract}
+
+\tableofcontents
+
+\subfile{sections/introduction}
+
+\subfile{sections/background}
+
+\subfile{sections/phase-i}
+
+\subfile{sections/phase-ii}
+
+\subfile{sections/phase-iii}
+
+\subfile{sections/consistency}
+
+\bibliographystyle{acmtrans-ims}
+\bibliography{locusts}
+
+\appendix
+
+\subfile{sections/target}
+
+
+\end{document}

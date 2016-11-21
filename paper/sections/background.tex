@@ -1,0 +1,132 @@
+\documentclass[../new-procedure.tex]{subfiles}
+
+\begin{document}
+
+\section{Notation, Assumptions on the Data and Data-Generating Process}
+
+The data will be a discrete-valued, discrete-time sequence $x_1, x_2, \ldots
+x_N$ from a known alphabet of finite size.  The data-generating process is a
+chain with complete connections
+\cite{Fernandez-Maillard-chains-with-complete-connections,Iosifescu-Grigorescu-complete-connections,Iosifescu-Theodorescu-random-processes}
+with finitely many states, in a single recurrent component, and with the finite
+synchronization property.  That is, there is a synchronizing word for each
+state, and with probability one, the process synchronizes within a finite time.
+This corresponds exactly to what Kitchens and Tuncel \cite{Kitchens-Tuncel}
+call a ``finitary measure''.
+
+Notation: time progresses along a sequence from left to right, so that if $p$
+and $q$ are words, $pq$ means that the word $p$ comes before the word $q$;
+prefixes are earlier history, suffixes are later.
+
+Write the state transition function $T$, i.e., $S_{t+1} = T(S_t, X_t)$.  For
+each symbol in the alphabet $a$, we have a map $M_a$ from states to states,
+$M_a(s) = T(s,a)$.  This mapping shows what state we reach on the symbol $a$
+for each initial state.  If a state $s$ cannot produce the symbol $a$, then
+$M_a(s) = \lambda$, the null state.  Seeing the sequence of states $ab$ induces
+the map $M_{ab} = M_b \circ M_a$.  (The reversal of the order is unfortunate,
+but reversing the direction of time seems even worse.)  Recursively, any word
+$w$ has its corresponding map $M_w$.  The collection of all word maps forms a
+semi-group.  (Technically, a monoid, if we add in the identity map.)
+
+A word $w$ is forbidden iff the range of $M_w$ consists of the null state
+$\lambda$.  A word $w$ is synchronizing iff the range of $M_w$ consists of a
+single non-null state plus, possibly, the empty state.
+
+In addition to its map from states to states, each word $w$ induces a mapping
+from distributions over states to distributions over states, call this
+$\Delta_w$. Because we are assuming only a finite number of states, a
+distribution is just a vector of that length with non-negative entries summing
+to one, i.e., a point on the simplex.  Let $p$ be one such vector, so that
+$p_s$ is the probability of being in state $s$.  Then, from Bayes's
+rule,
+\[
+(\Delta_w p)_s = [[\mathrm{tedious\ algebra}]]
+\]
+(We can adopt the convention that 0/0=0, so if the symbol $a$ cannot be
+produced from any state which has positive probability under $p$, we get the
+``distribution'' which gives zero probability to everything.)  The collection
+of $\Delta_w$ again forms a semi-group.  We can see that $w$ is forbidden iff
+the range of $\Delta_w$ is the zero vector, and synchronizing iff the range of
+$\Delta_w$ is corner of the simplex, i.e., a distribution putting probability 1
+on some state (plus possibly the zero vector).
+
+\subsection{Representation as a Looping Tree}
+
+The algorithm of \cite{Holmes-Isbell-looping} works on looping trees, so if we
+want to exploit it we need to represent our process appropriately.  In
+particular we want to ensure that we have a finite representation in this
+format.
+
+\begin{proposition}
+  Every process of the kind we are concerned with has a representation as a
+  finite-depth looping tree, with terminal nodes corresponding to causal
+  states.
+\end{proposition}
+
+\textsc{Proof:} Construct the tree.  Begin with a non-terminal root node
+representing the empty string, and grow as follows.  Consider the finite words
+$w$ over the alphabet in lexicographic order\footnote{Lexicographic order just
+  makes sure that we construct paths for all words of length $k-1$ in the tree
+  before we consider words of length $k$.  The order of the alphabet is
+  irrelevant.}.  If $w$ is forbidden, do nothing.  If $w$ is synchronizing, but
+$w=qs$ where $s$ is a shorter synchronizing word, do nothing.  We are thus left
+with (i) minimal synchronizing words and (ii) non-synchronizing words.  For
+convenience, write $w=aq$, where $a$ is a single letter and $q$ is a
+possible-empty suffix.
+
+Take case (i), minimal synchronizing words.  Since $w = aq$, the (possibly
+empty) suffix $q$ is non-synchronizing.  Find the node reached by following the
+path labeled by $q$ through the tree; it will end at a non-terminal node.  If
+$w$'s conditional distribution over future events matches that of an existing
+terminal node, add a descending edge from $q$'s node to that terminal; if no
+matching terminal node exists, create a new terminal node as child of $q$'s
+node.  In any event, label the edge by $a$. Thus, all synchronizing words will
+lead to terminal nodes, and all words synchronizing to the same state lead to
+the same terminal node.
+
+In case (ii), $w$ is an allowed but non-synchronizing word.  Then $q$ is
+non-synchronizing, too, and labels a path leading a non-terminal node.  We need
+to extend this path one step into the past.  Either there is already an edge
+out of $q$'s node, labeled by $a$, to a non-terminal node, or there is no edge
+out of $q$'s node with such a label.  At this point we check whether $w$ has
+the same conditional distribution as any of its suffixes, i.e., whether $w =
+uv$ for some (possibly empty) $v$ with the same conditional
+distribution.\footnote{If such a $v$ exists, then it is unique.  For suppose
+  that there were two such words, $v_1, v_2$.  Because they are both suffices
+  of $w$, one must be a suffix of the other; say $v_1 = h v_2$, so $w = u v_1 =
+  u h v_2$.  Since $h v_2$ comes before $w$ in the lexicographic order, we
+  would already have built the loop which carried it back to $v_2$.  Since $u
+  v_2$ also comes before $w$, we would have built that loop, too.  Hence we
+  would have already have a path labeled by $w$ to a non-terminal node, namely
+  the one already labeled by $v_2$.  But we have already disposed of the case
+  where $w$ has a path.}  If so, we add a loop from $q$'s node to $v$'s node,
+labeled by $a$.  ($v$ is strictly shorter than $w$ so it must label a path to a
+node, and this must be a non-terminal because $w$ is not synchronizing.)  If
+there is no such $v$, we create a non-terminal child of $q$'s node, and label
+the descending edge to it by $a$.
+
+To see that the tree thus constructed must have finite depth, we appeal to the
+result from \cite{Kitchens-Tuncel} that there are only finitely many
+conditional distributions over future events.  Hence if we consider any
+sequence of words extending backwards into the past, $w, u_1 w, u_2 u_1 w,
+\ldots$, either at some point the word becomes forbidden (and we can ignore
+it), or after a finite number of steps we repeat a conditional distribution.
+Without loss of generality, let $w$ be the first history whose distribution is
+ultimately repeated in the sequence, and $zw$ the history which repeats the
+distribution.  Either all further extensions of $zw$ also have this conditional
+distribution, in which case $w$ is synchronizing, or they do not, in which case
+$w$ is not synchronizing but there is a loop from $zw$'s node to $w$'s.  Thus,
+after a finite number of steps, we must either synchronize, reaching a terminal word, or loop, and the depth of the looping tree is finite.
+$\Box$
+
+
+[[Presentation here is a bit rough, perhaps present the construction first and
+then separate out the proof that it has the desired properties?]]
+
+This construction cannot be used with data, because it presumes knowledge of
+conditional distributions over the {\em infinite} future.  However, it gives
+the flavor of what we will do in phase II, using only the one-step-ahead
+distribution.
+
+
+\end{document}

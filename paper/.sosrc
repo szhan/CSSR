@@ -1,0 +1,3 @@
+- pattern: .*\.tex
+  command: pdflatex -jobname=rocs -output-directory=out new-procedure.tex
+

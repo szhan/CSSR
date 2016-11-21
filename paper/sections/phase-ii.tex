@@ -1,0 +1,91 @@
+\documentclass[../new-procedure.tex]{subfiles}
+
+\begin{document}
+
+\section{Phase II: Growing the Looping Tree}
+
+The Holmes and Isbell procedure needs some explaining before it can be adapted
+to our situation.
+
+Abstractly, their procedure relies on a notion of words being ``functionally
+equivalent'', i.e., leading to the same prediction.  (In their case, this is
+prediction of some output sequence from the input, whereas for us this is
+prediction of the future distribution of the input, but abstractly it doesn't
+matter.)  Derived notions are {\em matching}, {\em homogeneity} and {\em
+  excisability}.
+\begin{itemize}
+\item Two words $u$, $v$ {\bf match} iff they lead to the same prediction for
+  the next step.  Write this $\match(u,v)$.
+\item A word $w$ is {\bf homogeneous} iff, for any prefix $u$, $\match(w,uw)$.
+  Write this $\homog(w)$.  This means earlier history is irrelevant,
+  conditional on $w$.
+\item If $w=eq$, then the prefix $e$ is {\bf excisable} from $w$ iff, for all
+  prefixes $p$, $\match(peq, pq)$.  That is, inserting the extra history $e$
+  before $q$ makes no difference to predictions.
+\end{itemize}
+
+Suppose we have an oracle\footnote{This is using ``oracle'' more in the
+  computer science sense than the statistical sense in e.g. ``oracle
+  inequality'', so we should try to find a different name.} which can answer
+matching, homogeneity and excisability queries.  The abstracted Holmes-Isbell
+procedure then goes as follows.
+\begin{enumerate}
+\item Begin with a single node which matches the null prefix, i.e., everything.
+  Set this to be a terminal node.
+\item For each terminal node, check whether $w$ is homogeneous
+  \begin{enumerate}
+  \item If $\homog(w)$, leave $w$ alone.
+  \item If $\neg\homog(w)$, delete $w$ from the set of terminal nodes (but
+    leave its node in the tree).  For each symbol $a$ from the alphabet, add
+    child nodes for each $aw$, unless that string does not occur in the input
+    data.  For each created child node $aw$, check whether $aw=eq$ for some
+    excisable prefix $e$ and suffix $q$.
+    \begin{enumerate}
+    \item If so, delete the node $aw$, and create a loop from $w$ to $q$ with
+      the label $a$.
+    \item If not (i.e., if $aw$ has no excisable prefix), check whether
+      $\match(aw,r)$ for some existing terminal node $r$.
+      \begin{enumerate}
+      \item If so, delete the node $aw$ and create an edge labeled $a$ from $w$
+        to $r$.
+      \item If not, add $aw$ to the set of terminal nodes.
+      \end{enumerate}
+    \end{enumerate}
+  \end{enumerate}
+\item Continue until all terminal nodes are homogeneous.
+\end{enumerate}
+
+Note that in this looping tree, each step in the tree away from the root
+corresponds to going an additional time-step back into the past.  Thus to
+follow the word ``10'', we would start at the root (labeled with the empty
+string), then follow the descending edge labeled ``0'', and then the descending
+edge labeled ``1'' from {\em that} node.
+
+We need to show that this procedure terminates well.  Here however I think we
+can just steal from Holmes and Isbell.  I will copy this material later.  Their
+key observation is that if the number of states is finite, eventually any
+history extended into the past either becomes homogeneous or contains an
+excisable element.  This is because, with a finite number of states, there are
+only a finite number of {\em distinct} maps $M_w$.  This means that growth of a
+looping tree cannot continue forever.  Moreover, it terminates with a looping
+tree where each terminal node corresponds to a set of histories which have the
+same distribution for the next observation, so we're next-step sufficient.
+
+The oracle must be implemented by means of checking the conditional
+probabilities.  It does not need to get the conditional probabilities exactly
+right, it just needs to get queries about whether histories match right.
+
+
+\subsection{Examples}
+
+[[To be filled in, I have stepped through this for some simple machines]]
+
+\subsection{Agenda}
+
+\begin{enumerate}
+\item Fill in the details of the proof that the algorithm halts; these should
+  go exactly parallel to what Holmes and Isbell do.
+\item Implement this.
+\end{enumerate}
+
+\end{document}

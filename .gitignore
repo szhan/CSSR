@@ -37,7 +37,7 @@ logs
 # which may include possible citations and references
 resources
 .stites
-paper
+paper/out
 
 # Long-term git worktrees
 # ==================

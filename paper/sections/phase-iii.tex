@@ -1,0 +1,252 @@
+\documentclass[../new-procedure.tex]{subfiles}
+
+\begin{document}
+
+\section{Phase III: Refining the Looping Tree}
+
+At this stage, we have a partition of infinite histories into cells which are
+homogeneous, i.e., sufficient for next-step prediction.  By the theorem in
+\cite{CMPPSS}, if we can refine this into something with deterministic
+transitions, it will be sufficient for predictions arbitrarily far into the
+future.
+
+Notice that the terminal nodes of the looping tree correspond to the
+equivalence classes.  Deterministic transitions therefore means: ``For every
+path $w$ to a terminal node, and every one-letter suffix $a$, $wa$ is also a
+path to a terminal node.''
+
+In fact, however, we only need to check the paths to terminals which do not
+involve any excisable parts, i.e., do not go over any loops.\footnote{Suppose
+  that $qrs$ is a path to a terminal node, but $r$ is excisable.  Then
+  $M_{qrs}= M_{qr}$, and consequently $M_{qrsa} = M_{qra}$.}
+
+I propose the following procedure:
+
+\begin{tabbing}
+  until \= (no change)\\
+  \> for \= each terminal node $t$\\
+  \> \> for \= each non-looping path $w$ to $t$\\
+  \> \> \> for \= each symbol $a$ in the alphabet\\
+  \> \> \> \> follow the path $wa$ in the tree\\
+  \> \> \> \> if $wa$ leads to a terminal node, continue\\
+  \> \> \> \> else \= ($==$ $wa$ does not lead to a terminal node)\\
+  \> \> \> \> \> copy the sub-looping-tree rooted at (the node reached by) $wa$\\
+\> \> \> \> \> to $t$, giving all terminal nodes the predictive distribution of $t$\\
+  \> \> \> \> \> break loop
+\end{tabbing}
+
+The idea of copying sub-trees comes from \cite{Ron-Singer-Tishby-amnesia},
+which uses it to learn a class of models equivalent to variable-length Markov
+chains.  (More precisely, they use it as part of turning the context tree into
+a deterministic automaton.)
+
+The two big questions about this procedure are (1) whether it halts on every
+input, and (2) if it does halt, whether it actually delivers a looping tree
+corresponding to a deterministic machine\footnote{It would be easy to extract
+  the deterministic machine from the tree: one state per terminal node,
+  transitions determined by tracing the appropriate paths through the tree.}.
+Question (2) is easier and can be answered ``Yes''.
+
+\begin{proposition}
+  If procedure halts, it returns a deterministic machine.
+\end{proposition}
+
+\textsc{Proof}: this halts when no new sub-tree is added to the tree.  But this
+means that for each path $w$ to a terminal, $wa$ is also a path to a terminal.
+But this implies determinism over terminals.  So if it halts at all, it halts
+at a tree allowing recursive updating, i.e., a deterministic machine. $\Box$
+
+The question of whether it {\em does} halt is more complicated, and I am not
+yet completely confident that it always does.  I have worked on this point, but
+since it does not come to a definite conclusion, I shove my work to date into
+the next sub-section.  The sub-section after that provides the agenda.
+
+\subsection{Trying to show this procedure will always halt}
+
+\begin{proposition}
+At every step of the procedure, $r$ is a path to a terminal word only if
+$\homog(r)$.
+\end{proposition}
+
+\textsc{Proof:} Initially, every path to a terminal word is homogeneous.
+Thereafter, either those are left alone, or they are extended into the past.
+But $\homog(r) \Rightarrow \homog(pr)$.  $\Box$
+
+\begin{proposition}
+  (Assume the oracle works:) When the procedure begins, if $\homog(w)$, then
+  there is a $w$-labeled path to a terminal node.
+\end{proposition}
+
+\textsc{Proof:} This is just the assumption that Phase II of the algorithm
+worked properly.
+
+\begin{proposition}
+  (Assume the oracle works:) If $w$ is a synchronizing word, and $w$ becomes a
+  path to a terminal at some stage of the procedure, $w$ will always be a path
+  to a terminal thereafter.
+\end{proposition}
+
+\textsc{Proof:} Since $w$ is synchronizing, $wa$ is also synchronizing.  Every
+suffix of a synchronizing word will be homogeneous.  So $wa$ always leads to a
+terminal node, for each $a$.  So $w$ will never be refined.
+
+\begin{proposition}
+$w$ is a synchronizing word if any only if $ws$ is homogeneous
+for all suffixes $s$.
+\end{proposition}
+
+\textsc{Proof:} ``Only if'': If $w$ is synchronizing, then $ws$ is also
+synchronizing.  But every synchronizing word is homogeneous.  ``If'': suppose
+the contrary, i.e., the existence of a $w$ such that $\homog{w}$ and
+$\homog{ws}$ for all suffixes $s$, but $w$ is not synchronizing.  Because
+$\homog{w}$, conditioning on $w$ is enough to determine the probability of all
+next-step observations $a$.  Since $\Prob{X^{t+2}_{t+1} = ab|X^t_{-\infty} \in
+  [w]} = \Prob{X_{t+2} = b|X^{t}_{-\infty} \in [w], X_{t+1} = a}
+\Prob{X_{t+1}=a|X^t_{-\infty} \in [w]}$, and $\homog{wa}$, conditioning on $w$
+is enough to give the probabilities of all sequences of length 2.  Clearly, by
+induction conditioning on $w$ is enough to give the probability of all future
+events.  But this means that the causal state is fixed when the history ends
+with $w$, which means that $w$ is synchronizing. $\Box$
+
+\begin{proposition}
+  If $w$ is a path to a terminal node at the initial stage and $w$ is not
+  synchronizing, then $w$ will be refined.
+\end{proposition}
+
+\textsc{Proof:} If $w$ is not synchronizing, then $ws$ is not homogeneous for
+some suffix $s$, by the preceding claim.  For any such $s$, let $r$ be the
+shortest prefix of $s$ such that $wr$ is not homogeneous.  Setting $r = qa$,
+for a one-symbol $a$, $wq$ is homogeneous.  Since it is homogeneous, there is a
+path labeled $wq$ to a terminal node (in the initial stage).  But $wq$ will be
+refined, so eventually the sequence of refinements will propagate down the
+prefixes to $w$. $\Box$
+
+\begin{proposition}
+At every stage, every subtree contains at least one terminal node.
+\label{proposition:always-at-least-one-terminal-per-sub-tree}
+\end{proposition}
+
+\textsc{Proof 1:} If a subtree contained no terminal nodes, then any path which
+entered the subtree would remain forever.  The set of sample paths whose
+suffixes are paths to this sub-tree either has measure zero or it has positive
+measure.  If it has measure zero, it is almost never observed and can be
+ignored.  If it has positive measure, there is a positive-measure set of sample
+paths which never synchronize.  But this is forbidden by the synchronization
+assumption.  Hence, every subtree contains at least one terminal node. $\Box$
+
+Proof 1 uses too many probabilistic facts for me to be altogether comfortable
+with it.
+
+\textsc{Proof 2:} By induction.  Every stage of the procedure either replaces a
+terminal node by a sub-tree of the existing tree, or it halts.  If at stage $k$
+every sub-tree contains at least one terminal node, then moving from $k$ to
+$k+1$ replaces one terminal node $t$ with a sub-tree containing at least one
+terminal, so any sub-tree containing $t$ still contains a terminal node.  In
+the base case, it is clearly true in the initial stage that every sub-tree
+contains at least one terminal node.  Otherwise, there would be a node such
+that all paths beyond that node eventually looped, i.e., contained excisable
+words, but then part of the path to that node would too have been excisable.
+(See next lemma.)  $\Box$
+
+\begin{lemma}
+  Let $q = br$, with $b$ being a single letter.  If, for all $a$ in the
+  alphabet, $aq = abr$ and $ab$ is excisable from $abr$, then $b$ is excisable
+  from $br$.
+\end{lemma}
+(In other words, if every continuation of a word loops to the same place, we
+could have looped already.)
+
+\textsc{Proof:} By hypothesis, for all $a$, for all prefixes $p$, $\match(pabr,
+pr)$.  But every prefix of $br$ has the form $pa$ for some $a, p$, so for all
+prefixes $p{\prime}$, $\match(p\prime br, p\prime r)$, so $b$ is excisable from
+$br$.  $\Box$
+
+\begin{proposition}
+  If $w$ is not a terminal node, but $aw$ is for some $a$ in the alphabet, then
+  there must exist at least one other letter $b$ such that $b$ is a prefix of
+  $w$.
+\end{proposition}
+
+\textsc{Proof:} When the procedure is initialized, if $aw$ is a terminal node,
+then $\homog(aw)$, and no suffix of $aw$ is homogeneous.  But if $a$ is the
+only one-letter prefix to $w$, then $\homog(aw) \Rightarrow \homog(w)$.  So the
+claim is true initially.  Now, inductively, suppose the claim is true at stage
+$k$.  Then in going from stage $k$ to stage $k+1$, all that happens is that an
+existing terminal node $t$ is replaced with an existing sub-tree of an existing
+non-terminal node.  Since the sub-tree satisfies the condition (by the
+inductive hypothesis), the new sub-tree rooted at $t$ does too. $\Box$
+
+\begin{proposition}
+This procedure halts.
+\end{proposition}
+
+\textsc{Proof 1:} Initially, either a terminal word $w$ is synchronizing or it
+is not.  By the previous claim, if $w$ is synchronizing, it will always remain
+terminal.  If $w$ is not synchronizing, then it will be refined.  Refinements
+consist of adding sub-trees which contain one or more terminal nodes and zero
+or more loops.  It is not possible to keep adding sub-trees to infinite depth,
+however, since after a finite number of steps every history either synchronizes
+or loops.  Moreover (Proposition
+\ref{proposition:always-at-least-one-terminal-per-sub-tree} above), every
+sub-tree must contain at least one terminal node. $\Box$
+
+Again, the first proof uses too much ``probability'', too many assumptions
+about the generating process to be really satisfactory.
+
+
+
+\textsc{Proof 2:} Every move by the procedure replaces a terminal node with a
+subtree, which (Proposition
+\ref{proposition:always-at-least-one-terminal-per-sub-tree} above) contains at
+least one terminal node.  Thus, the number of terminal nodes is non-decreasing.
+But if depth is bounded, there is an upper limit on the number of terminal
+nodes.  Hence the number of terminal nodes cannot increase forever.  If the
+number of terminal nodes does not increase, either the procedure has converged
+or the move has increased the depth of the tree.  But the depth of the tree is
+bounded.  Hence the procedure must eventually converge.  $\Box$
+
+This is better than the previous proof, but relies on the tree having bounded
+depth.  This is true of the data-generating process, but suppose we got a very
+bad sample which didn't look much like the true distribution --- we'd still
+want the procedure to halt!  Maybe something like the following could be made
+to work?
+
+Every move by the procedure replaces a terminal node with a subtree, which
+(Proposition \ref{proposition:always-at-least-one-terminal-per-sub-tree})
+contains at least one terminal node.  Thus, the number of terminal nodes is
+non-decreasing.  For this to fail to converge, either (i) the number of
+terminal nodes must grow without bound, or (ii) the tree must keep changing
+while keeping the number of terminal nodes stays constant.  Then rule out (i)
+somehow.  As for (ii), for it to be true, at every stage a terminal node must
+be replaced with a sub-tree containing exactly one terminal node.  However, no
+sub-tree contains just one terminal node and nothing else, it must contain
+either multiple terminal nodes or a single terminal node and one or more loops.
+Since, in this case, the sub-trees cannot contain multiple terminals nodes,
+they must contain at least one loop.  So in case two, the number of loops must
+grow by at least one at each step.  Moreover, the depth of the tree must
+increase by at least one at each step.  And this is impossible because ...
+
+\subsection{Examples}
+
+[[Again, I will transcribe what I have done by hand]]
+
+\subsection{Minimality}
+
+In the examples I have stepped through, this finds the minimal refinement
+of the next-step-sufficient partition that is fully sufficient. 
+
+\subsection{Agenda}
+
+\begin{enumerate}
+\item Finish the proof that the procedure will halt.
+  \begin{enumerate}
+  \item If the procedure as given will only halt for ``good'' inputs (in some
+    sense to be defined), can we bound how long it can go on good inputs, and
+    terminate with a ``can't do this'' if it runs longer?
+  \item If it will not always halt, can we devise a modification which will?
+  \end{enumerate}
+\item Prove minimality.
+\item Implement the procedure.
+\end{enumerate}
+
+\end{document}

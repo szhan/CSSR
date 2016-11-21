@@ -1,0 +1,38 @@
+\documentclass[../new-procedure.tex]{subfiles}
+
+\begin{document}
+
+\section{Phase I: Learning Conditional Distributions}
+
+We will need to learn the conditional probabilities $\Prob{X_{t+1}|X^t_{t-k+1}
+  = w}$ for various words $w$ of lengths $k=1, 2, \ldots L$.  (We shall assume
+the data source is conditionally stationary so that these quantities are
+well-defined independent of $t$.)  I {\em believe} that any consistent
+estimator of these probabilities will do, but I will assume the use of maximum
+likelihood, so that these will just be the empirical conditional distributions.
+
+Since there are only finitely many causal states, there are only finitely many
+next-step distributions to learn, and so I will presume that we can guarantee,
+with arbitrarily high confidence, that all of the estimated probability
+distributions are within any desired threshold (in the $L_1$ sense) of the
+truth.
+
+\subsection{Agenda}
+
+Obviously, convergence/consistency proofs are needed for all of this.  The
+tricky bit with the convergence of the probability estimates is that
+conditional probabilities are ratios of two random quantities.
+
+\begin{itemize}
+\item Read the papers Ale put together.
+\item Incorporate Ale's notes from 2007.
+\item The sketch in \cite{CSSR-for-UAI} argued that once we have the right
+  partition, every time we see that history the next symbol is an independent
+  draw from a fixed distribution, therefore converges by the ordinary SLLN.
+  Could this be made precise?
+\item Prove that the maximum likelihood estimator of the conditional
+  probabilities converges, and converges fast enough for whatever we're doing
+  in subsequent parts of the algorithm.
+\end{itemize}
+
+\end{document}

@@ -1,0 +1,354 @@
+\documentclass[../new-procedure.tex]{subfiles}
+
+\begin{document}
+
+\section{Description of the Class of Processes ROCS Is Targeted At}
+
+[[Taken from notes dated 27 August 2007, notation does not harmonize with above,
+logically some of this at least go before the algorithm]]
+
+[[Some conjectures here settled by the results in \cite{Kitchens-Tuncel} and
+\cite{Iosifescu-Grigorescu-complete-connections}]]
+
+We are concerned with models of discrete-valued, discrete-time stochastic
+processes.  That is, we imagine our data to come from a sequence of random
+variables $X_1, X_2, X_3, \ldots$, taking values in some finite set
+$\ProcAlphabet$, the {\em alphabet} of the observations.  We abbreviate the
+whole observable process by $X$.
+
+\begin{definition}
+  $X$ is a {\em finite-state process} when there exists a sequence of random
+  variables $S_1, S_2, \ldots$, taking values in a finite set $\StateSet$, such
+  that the future of $X,S$ is independent of its past, given the present value
+  of $S$.
+\end{definition}
+
+\begin{proposition}
+  If $X$ is a finite-state process, then $Y = (X,S)$ is a Markov chain.  The
+  process $Y$ is called the {\em extended chain} of $X$.
+\end{proposition}
+
+\textsc{Proof:} Trivial. $\Box$
+
+The finite-state processes include all Markov chains, all variable length
+Markov chains, and all hidden Markov models of the usual sort.  In the
+last-named, $X_{t+1} \indep S_{t+1} | S_t$, but this is not generally true,
+and is specifically {\em not} true of the kind of model we wish to consider.
+
+A finite-state process can be represented by a graph, where nodes correspond to
+the states (i.e., elements of $\StateSet$), and there is an edge from $s_i$ to
+$s_j$, labeled by $a \in \ProcAlphabet$, when $\Prob{X_{t+1} = a, S_{t+1} =
+s_j| S_t = s_i} > 0$.  This is the {\em state-transition graph}, or just the
+{\em transition graph}.
+
+{\em Note:} It is of course possible to extend the definition of a finite-state
+process to cases where $\ProcAlphabet$ is infinite.  The graphical
+representation becomes unhelpful in this case.
+
+\begin{definition}
+  A finite sequence of consecutive symbols is a {\em word}.\footnote{Some
+    branches of the theory of formal languages consider infinite words.  We
+    avoid such complications here.}  A word $w$ is {\em allowed} by a
+  finite-state process $X$ if there is a path through the transition graph of
+  $X$ whose edge-labels are given by $w$.  If there is no such path, then the
+  word is {\em forbidden}.  A word $w$ is {\em allowed from} or {\em produced
+    by} a state $s$ if there is a $w$-labeled path beginning at $s$, otherwise
+  it is {\em forbidden to start from $s$}, or just {\em forbidden from $s$}.
+\end{definition}
+Note that even if $w$ is forbidden to start from $s$, there can be a path from
+$s$ to another state, say $r$, which can produce $w$, so passing through $s$
+does not (always) forbid the eventual appearance of $w$.
+
+\begin{definition}
+A finite-state process which is not a Markov chain of any finite order is
+{\em strictly sofic}.
+\end{definition}
+This definition follows the usage in symbolic dynamics [[citations]].
+
+\begin{definition}
+  A finite-state process has the {\em recursive updating property} if there
+  exists a measurable function $T$ such that $S_{t+1} = T(S_t, X_t)$.
+\end{definition}
+
+In automata theory, such a process would be said to have {\em deterministic
+  transitions}.  In symbolic dynamics, it would be {\em right-} or {\em
+  future-} resolving.  We avoid these terms, in favor of one which may be more
+familiar from the theory of recursive estimation and from filtering theory.
+
+[[Add cites to the Romanian literature, where these are called ``processes with
+complete connections'', or ``chains with complete connections'']]
+
+\begin{proposition}
+  A finite-state process has the recursive updating property if and only if
+  each node in its transition graph has at most {\em one} out-going edge
+  labeled with a given symbol.
+\end{proposition}
+
+\textsc{Proof:} Obvious. $\Box$
+
+All finite-order Markov chains and variable-length Markov chains have the
+recursive updating property.
+
+\begin{proposition}
+There exist strictly sofic processes with the recursive updating property.
+\end{proposition}
+
+\textsc{Proof}: Examples will be exhibited below.  $\Box$
+
+Example: even process, alternating biased coins.
+
+\begin{definition}
+  For each symbol $a \in \ProcAlphabet$, we associate a {\em transition map}
+  $M_a: \StateSet \mapsto \StateSet$, where $M_a(s) = T(s,a)$.  (If $a$ is
+  forbidden from $s$, $M_a(s) = \emptyset$.)  We define the map associated with
+  a word through the composition of the maps of its symbols, in order, so that
+  $M_{ab} = M_b \circ M_a$, etc.  Further, define $M_{\emptyset}$ to be the
+  identity map on $\StateSet$.
+\end{definition}
+
+\begin{proposition}
+  The transition maps $M_w$ form a monoid, whose generators are the maps of the
+  individual letters.
+\end{proposition}
+
+\textsc{Proof}: Follows directly from the associativity of composition. $\Box$
+
+\begin{definition}
+The number of states {\em compatible with a word}, $K(w)$, is the cardinality of the range of $M_w$:
+\begin{equation}
+K(w) \equiv | M_w(\StateSet)|
+\end{equation}
+\end{definition}
+
+\begin{proposition}
+  $K(w)$ counts the number of distinct end-points of paths in the transition
+  graph labeled by $w$.
+\end{proposition}
+\textsc{Proof}: From the construction of the graph. $\Box$
+
+\begin{proposition}
+The number of states compatible with a word is non-increasing, that is,
+$K(uv) \leq K(u)$ for any words $u, v$.
+\label{proposition:transition-mappings-are-constrictive}
+\end{proposition}
+\textsc{Proof}: Follows directly from the recursive-updating property. $\Box$
+
+\begin{proposition}
+A word is forbidden iff $K(w) = 0$.
+\end{proposition}
+\textsc{Proof}: From the proposition about counting end-points and the
+definition of ``forbidden word''. $\Box$
+
+\begin{definition}
+  A word is {\em synchronizing} when $K(w) = 1$, in which case $w$ is a
+  synchronizing word {\em for} the state $M_w(\StateSet)$, or {\em
+    synchronizes to} that state.
+\end{definition}
+
+The choice of the term ``synchronizing'' is suggested by the following
+observation.
+
+\begin{proposition}
+  A word $w$ is synchronizing iff, for any two states $s, r$, $T(s,w) =
+  T(r,w)$, unless $w$ is forbidden from at least one of the states.
+\end{proposition}
+
+\textsc{Proof}: ``If'': clearly, $M_w(s)$ has the same value for all $s$ for
+which it is not empty; hence $|M_w(\StateSet)| = 1$.  ``Only if'': Run the
+argument in reverse. $\Box$
+
+\begin{proposition}
+Every synchronizing word is allowed.
+\end{proposition}
+
+\textsc{Proof}: Since $|M_w(\StateSet)| = 1$, there exists at least one path
+through the transition graph labeled by $w$. $\Box$
+
+\begin{proposition}
+  Every superword of a synchronizing word is either synchronizing or forbidden.
+\end{proposition}
+
+\textsc{Proof}: Follows directly from Proposition
+\ref{proposition:transition-mappings-are-constrictive} and the definitions.
+$\Box$
+
+\begin{definition}
+  A process {\em has synchronized} at time $t$ if $K(x_1^t) = 1$.
+\end{definition}
+
+\begin{definition}
+  The {\em synchronization time} of a process is the first time at which it has
+  synchronized:
+  \begin{equation}
+    \synctime \equiv \min{\left\{t ~ : ~ K(X_1^t) = 1 \right\}}
+  \end{equation}
+  with the understanding that $synctime = \infty$ if $K(X_1^t)$ is always
+  greater than 1.
+\end{definition}
+
+\begin{proposition}
+  The synchronization time is a waiting time with respect to the natural
+  filtration of $X$.
+\end{proposition}
+\textsc{Proof}: .... $\Box$
+
+\begin{definition}
+  A process is {\em synchronizing} when $\synctime$ is finite a.s.  A process
+  is {\em non-synchronizing} when $\synctime$ is infinite a.s.  A process is
+  {\em maybe-synchronizing} when $\synctime$ is finite with a positive
+  probability $< 1$.
+\end{definition}
+
+\begin{proposition}
+Every variable-length Markov chain is synchronizing, and $\synctime$ is bounded.
+\end{proposition}
+\textsc{Proof}: .... $\Box$
+
+\begin{proposition}
+  If the state-transition graph is strongly connected, then the process is
+  synchronizing if and only if there exist synchronizing words.
+\end{proposition}
+
+\textsc{Proof}: ``If'': By hypothesis, there exists at least one finite
+synchronizing word $w$.  Since $w$ is allowed, there exists at least one state
+$s$ from which it can be produced with positive probability.  Since the graph
+is strongly connected, etc., the state $s$ is visited infinitely often, and
+each time (by the Markov properties) the probability of producing $w$ is the
+same.  Hence (Borel-Cantelli) $w$ will be produced almost surely.  But once $w$
+is produced, the process has synchronized.  ``Only if'': If there do not exist
+finite synchronizing words, then clearly the process will never
+synchronize. $\Box$
+
+\begin{proposition}
+  If any synchronizing words exist, then every state has infinitely many
+  synchronizing words.
+\end{proposition}
+
+\textsc{Proof}: By hypothesis, there exists at least one state, call it $s_i$,
+with at least one finite synchronizing word, call it $w$, i.e., $\delta_w =
+s_i$.  Because the states are strongly connected (by assumption), there must be
+at least one finite path from $s_i$ to any other state $s_j$ (including $s_i$).
+Let the label of one such path be $v$.  Then $|\delta_{wv}| = 1$ (by
+Proposition \ref{proposition:transition-mappings-are-constrictive} above and
+the fact that $wv$ is clearly an allowed word), and $wv$ is finite and
+synchronizing, with $\delta_{wv} = s_j$.  So if there is even a single finite
+synchronizing word, every state has infinitely many such synchronizing
+words. $\Box$
+
+\begin{proposition}
+  There exist strictly sofic, recursively-updating processes which are
+  synchronizing.
+\end{proposition}
+
+\textsc{Proof}: By example.  The word ``0'' is synchronizing for the even
+process, and induces all its non-forbidden super-words as further synchronizing
+words. $\Box$
+
+
+Our major assumption is that our processes have (1) finite states with (2)
+recursive transitions which (3) result in a strongly-connected transition graph
+and (4) are synchronizing a.s.  Following [[ref.]], we will refer to these as
+{\em causal state models}.\footnote{{\em If} one gives the probability model a
+  causal interpretation, then any intervention which actually alters the
+  distribution of future events must change the state, and vice versa.  We do
+  not wish to go any further into the question of causality, beyond noting that
+  causal inference for dynamics has received comparatively little attention in
+  the literature.}  All variable-length Markov chains fall within this class,
+as well as some strictly sofic processes which have no finite VLMC
+representations.
+
+\paragraph{Bounding the Synchronization Time}
+
+Suppose that there is least one synchronizing word $w$, which can be produced
+from at least one state $s$, and that $s$ produces $w$ with probability $q$.
+Let $T_1, T_2, \ldots$ be the times of successive visits to $s$, and let
+$N_{synch} = \min_{n}{X_{T_n}^{+}= w\ldots}$, i.e, the number of the visit on
+which $w$ is produced for the first time.  Clearly, $N_{synch}$ is
+geometrically distributed (from 1) with parameter $q$.
+
+It follows that $\synctime \leq T_{N_{sync}} + |w|$ --- the former obviously
+cannot be greater than the latter, but it could be smaller, if there is
+another synchronizing word, or another state capable of producing the same
+synchronizing word.  The constant $|w|$ is uninteresting; what can we say
+about the distribution of $T_{N_{sync}}$?
+\begin{equation}
+T_{N_{sync}} = T_1 + \sum_{i=1}^{N_{sync} - 1}{T_{i+1} - T_{i}} = T_1 + \sum_{i=1}^{N_{sync}}{R_i}
+\end{equation}
+where $R_i \equiv T_{i+1} - T_{i}$ are the return times to the state $s$.
+These are (by the strong Markov property of finite Markov chains) IID.
+$N_{sync} - 1$ is geometrically distributed from 0, so the distribution of the
+sum could be found by means of generating functions, once we know the common
+distribution of the $R_i$.  (Kac's theorem gives us that $\Expect{R_i} =
+1/p(s)$.) The time $T_1$, however, is a first passage time, whose distribution
+will in general be different from that of $R_i$.  So one approach, here, is to
+try to say more about the distribution of $T_1$ and $R_i$, which will in
+general depend on the structure and parameters of the Markov chain.
+
+As a delayed renewal sequence, however, we know that $n^{-1} T_n \rightarrow
+\Expect{R_i}$ a.s., or $T_n \rightarrow n\Expect{R_i} + \Gamma(n)$, where
+$\Gamma$ is random but a.s. $o(n)$.  Suppose [[how to justify this?]]  that
+this still holds for $T_{N_{sync}}$ conditional on $N_{sync} = n \gg 1$.  Then
+I seem to be saying that $T_{N_{sync}}/\Expect{R_i}$ has a geometric tail
+bound.
+
+
+
+\subsection*{Further Characterizations of Synchronizing Processes}
+
+Because of its fundamental importance for what follows, it is useful to provide
+a number of characterizations or tests for when a finite-state process with
+recursive transitions is synchronizing.  We have already seen that the
+existence of a synchronizing word is necessary and sufficient.
+
+\paragraph{The subset graph} Construct a new graph, where the nodes are labeled
+by all the non-empty sub-sets of $\StateSet$.  There is an edge from $A$ to
+$B$, labeled by $a$, when $M_a(A) = B$.  Call this the {\em subset graph}.
+
+\begin{proposition}
+  The singleton nodes of the subset graph form a strongly connected component.
+\end{proposition}
+
+\textsc{Proof}: The singleton nodes of the subset graph reproduce the original
+transition graph. $\Box$
+
+\begin{proposition}
+  The word $w$ is synchronizing if and only if it labels a path in the subset
+  graph from $\StateSet$ to a singleton node.
+\end{proposition}
+
+\textsc{Proof}: From the definition of a synchronizing word. $\Box$
+
+\begin{proposition}
+  If $w$ labels a path in the subset graph from $A$ to $B$, then it labels a
+  path from every $A^\prime \supseteq A$ to some $B^\prime \supseteq B$.
+\end{proposition}
+
+\textsc{Proof}: Since $A \subseteq A^\prime$, $B = M_w(A) \subseteq
+M_w(A^\prime) \equiv B^\prime$. $\Box$
+
+\begin{proposition}
+  A process is synchronizing if and only if its subset graph has only one
+  strongly connected component.
+\end{proposition}
+
+
+\textsc{Proof}: If it has only one strongly connected component, then that must
+consist of the singleton nodes.  Since any trajectory on a finite graph
+eventually enters a strongly connected component, which it never leaves, in
+this case it must eventually synchronize.
+
+If, on the other hand, there is more than one strongly connected component, the
+others must conain only {\em non}-singleton nodes.  Moreover, there must be no
+path from $\StateSet$ to the singleton component.  If there word, there would
+be a synchronizing word, and, {\em if} there is a synchronizing word, then
+eventually a.s. every trajectory enters that strongly connected component (by
+the main proposition).
+
+
+Cybenko-related thought: synchronization implies that number of paths through
+graph to present must eventually cease growing.  Is the converse true?  Ans.:
+No.  Consider that for us there is one path from each starting state, until
+they merge or are killed, so non-synchronization corresponds to a constant
+number of paths.
+
+\end{document}

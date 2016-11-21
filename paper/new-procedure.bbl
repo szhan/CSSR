@@ -1,0 +1,78 @@
+\begin{thebibliography}{}
+\ifx \url   \undefined \def \url#1{#1}   \fi
+
+\bibitem{Fernandez-Maillard-chains-with-complete-connections}
+\textsc{Fern{\'a}ndez, R.} \textsc{and} \textsc{Maillard, G.} (2005).
+\newblock Chains with complete connections: General theory, uniqueness, loss of
+  memory and mixing properties.
+\newblock \emph{Journal of Statistical Physics\/}~\emph{118}, 555--588.
+\newblock http://arxiv.org/abs/math/0305026.
+
+\bibitem{Holmes-Isbell-looping}
+\textsc{Holmes, M.~P.} \textsc{and} \textsc{Isbell, Jr., C.~L.} (2006).
+\newblock Looping suffix tree-based inference of partially observable hidden
+  state.
+\newblock In \emph{Proceedings of the 23rd International Conference on Machine
+  Learning}, {W.~Cohen} {and} {A.~Moore}, Eds. ACM, New York, 409--416.
+\newblock http://www.cc.gatech.edu/~isbell/papers/isbell-state-icml-2006.pdf.
+
+\bibitem{Iosifescu-Grigorescu-complete-connections}
+\textsc{Iosifescu, M.} \textsc{and} \textsc{Grigorescu, S.} (1990).
+\newblock \emph{Dependence with Complete Connections and Its Applications}.
+\newblock Cambridge University Press, Cambridge, England.
+\newblock Revised paperback printing, 2009.
+
+\bibitem{Iosifescu-Theodorescu-random-processes}
+\textsc{Iosifescu, M.} \textsc{and} \textsc{Theodorescu, R.} (1969).
+\newblock \emph{Random Processes and Learning}.
+\newblock Springer-Verlag, Berlin.
+
+\bibitem{Kitchens-Tuncel}
+\textsc{Kitchens, B.} \textsc{and} \textsc{Tuncel, S.} (1985).
+\newblock \emph{Finitary Measures for Subshifts of Finite Type and Sofic
+  Systems}. Memoirs of the American Mathematical Society, Vol. \textbf{338}.
+\newblock American Mathematical Society, Providence, Rhode Island.
+
+\bibitem{Knight-predictive-view}
+\textsc{Knight, F.~B.} (1975).
+\newblock A predictive view of continuous time processes.
+\newblock \emph{Annals of Probability\/}~\emph{3}, 573--596.
+\newblock http://projecteuclid.org/euclid.aop/1176996302.
+
+\bibitem{Knight-foundations-of-prediction}
+\textsc{Knight, F.~B.} (1992).
+\newblock \emph{Foundations of the Prediction Process}.
+\newblock Clarendon Press, Oxford.
+
+\bibitem{predictive-representations-of-state}
+\textsc{Littman, M.~L.}, \textsc{Sutton, R.~S.}, \textsc{and} \textsc{Singh,
+  S.} (2002).
+\newblock Predictive representations of state.
+\newblock In \emph{Advances in Neural Information Processing Systems 14 (NIPS
+  2001)}, {T.~G. Dietterich}, {S.~Becker}, {and} {Z.~Ghahramani}, Eds. MIT
+  Press, Cambridge, Massachusetts, 1555--1561.
+\newblock http://www.eecs.umich.edu/~baveja/Papers/psr.pdf.
+
+\bibitem{Ron-Singer-Tishby-amnesia}
+\textsc{Ron, D.}, \textsc{Singer, Y.}, \textsc{and} \textsc{Tishby, N.} (1996).
+\newblock The power of amnesia: Learning probabilistic automata with variable
+  memory length.
+\newblock \emph{Machine Learning\/}~\emph{25}, 117--149.
+
+\bibitem{CMPPSS}
+\textsc{Shalizi, C.~R.} \textsc{and} \textsc{Crutchfield, J.~P.} (2001).
+\newblock Computational mechanics: Pattern and prediction, structure and
+  simplicity.
+\newblock \emph{Journal of Statistical Physics\/}~\emph{104}, 817--879.
+\newblock http://arxiv.org/abs/cond-mat/9907176.
+
+\bibitem{CSSR-for-UAI}
+\textsc{Shalizi, C.~R.} \textsc{and} \textsc{Klinkner, K.~L.} (2004).
+\newblock Blind construction of optimal nonlinear recursive predictors for
+  discrete sequences.
+\newblock In \emph{Uncertainty in Artificial Intelligence: Proceedings of the
+  Twentieth Conference (UAI 2004)}, {M.~Chickering} {and} {J.~Y. Halpern}, Eds.
+  AUAI Press, Arlington, Virginia, 504--511.
+\newblock http://arxiv.org/abs/cs.LG/0406011.
+
+\end{thebibliography}

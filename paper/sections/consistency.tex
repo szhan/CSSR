@@ -1,0 +1,35 @@
+\documentclass[../new-procedure.tex]{subfiles}
+
+\begin{document}
+
+\section{Over-all consistency of the algorithm}
+
+The analysis above assumes that we have an oracle which can correctly answer
+queries about when two histories imply the same conditional distribution over
+future events.  With finite data, our conditional distribution estimates will
+be able to answer this only with some probability of error.  How rapidly does
+that probability of error have to go to zero in order for the probability that
+the algorithm returns the wrong machine goes to zero?
+
+There are only a finite number of true conditional distributions.  Thus, there
+is a minimal $L_1$ distance between distinct conditional distributions, call
+this $\delta$.  Therefore, if two histories do not match, their true
+distributions are at least $\delta$ apart, and the probability of thinking that
+distributions which are $\delta$ apart are actually identical goes to zero
+exponentially fast in $\delta$ and the sample size (via various large
+deviations results, I think it's actually $\delta^2$).  In fact I believe we
+should be able to achieve exponentially shrinking rates of both type I and type
+II errors.  Thus we should be able to get an exponential bound for the
+probability of error on any given query to the oracle.
+
+We only ever need to make a finite number of queries to the oracle.  (Obvious?)
+
+We can thus use Bonferroni to bound the probability that {\em no} query to the
+oracle messes up.  This bound will go to zero at the same rate (in the sample
+size) as the per-query bound, presumably exponentially.
+
+This would seem to suffice for the consistency of the structure.  But, once
+we've got the structure right, we're just doing parametric maximum likelihood,
+which is consistent for the distribution.
+
+\end{document}
