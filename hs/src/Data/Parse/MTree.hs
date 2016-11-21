@@ -91,3 +91,5 @@ buildMTree n' (V.filter isValid -> cs) = do
       | otherwise         = V.slice i (length cs - i) cs
 
 
+buildTree :: Int -> DataFileContents -> ParseTree
+buildTree n df = ParseTree n (runST $ buildMTree n df >>= freeze)
