@@ -1,3 +1,4 @@
+{-# LANGUAGE ViewPatterns #-}
 module Data.Parse.MTree where
 
 import Control.Monad.ST
@@ -74,5 +75,19 @@ freeze (MPLeaf o c childs) = do
     step :: (Event, MPLeaf s) -> HashMap Event PLeaf -> ST s (HashMap Event PLeaf)
     step (e, mlf) hm = HM.insert e <$> freeze mlf <*> pure hm
 
+
+buildMTree :: Int -> DataFileContents -> ST s (MPLeaf s)
+buildMTree n' (V.filter isValid -> cs) = do
+  root <- mkMRoot
+  forM_ [0 .. V.length cs] (\i -> addPath (sliceEvents i) root)
+  return root
+  where
+    n :: Int
+    n = n' + 1
+
+    sliceEvents :: Int -> Vector Event
+    sliceEvents i
+      | i + n < length cs = V.slice i n cs
+      | otherwise         = V.slice i (length cs - i) cs
 
 
