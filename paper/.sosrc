@@ -1,3 +1,12 @@
-- pattern: .*\.tex
-  command: pdflatex -jobname=rocs -output-directory=out new-procedure.tex
+- patterns:
+  - sections/(.*)\.tex
+  - new-procedure.tex
+  commands:
+  - pdflatex -jobname=rocs -output-directory=out new-procedure.tex
+
+- pattern: (algorithm)\.tex
+  commands:
+  - pdflatex -jobname=\1 -output-directory=out \0
+#  - pdflatex -output-directory=out/sections \1.tex
+
 

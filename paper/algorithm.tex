@@ -1,0 +1,137 @@
+\documentclass{article}
+%\documentclass[aos,preprint]{imsart}
+\usepackage{amsmath,amsfonts,amssymb,graphics,amscd}
+\usepackage[square]{natbib}
+\usepackage{hyperref}
+\usepackage[normalem]{ulem}
+\usepackage{inconsolata}
+\newcommand{\Prob}[1]{\ensuremath{\mathrm{Pr}\left( #1 \right) }}
+\newcommand{\Expect}[1]{\ensuremath{\mathbb{E}\left[ #1 \right]}}
+\newcommand{\ProcAlphabet}{\ensuremath{\mathcal{A}}}
+\newcommand{\StateSet}{\ensuremath{\mathcal{S}}}
+\newcommand{\indep}{\ensuremath{\rotatebox{90}{$\models$}}}
+\newcommand{\synctime}{\ensuremath{\tau_{\mathrm{synch}}}}
+\newcommand{\match}{\ensuremath{\mathrm{match}}}
+\newcommand{\homog}{\ensuremath{\mathrm{homog}}}
+\newcommand{\excisable}{\ensuremath{\mathrm{excisable}}}
+\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}
+\newtheorem{lemma}{Lemma}
+\begin{document}
+
+\title{ROCS Algorithm}
+\author{Redrafted by Sam Stites}
+\date{last \LaTeX 'd \today}
+\maketitle
+
+\section{Phase I: Build the Parse Tree}
+
+Notes:
+
+\begin{itemize}
+
+\item Building up a Parse tree is constrained by a max-length. Is there a way to
+build up some of the parse tree, get information about the looping tree, then
+continue building up the parse tree?
+  \begin{itemize}
+    \item This can probably be done by including \textit{non-terminal},
+      \textit{non-looping} nodes. If they exist in the looping tree, more
+      information is needed.
+  \end{itemize}
+
+\item instead of being \textit{given} an alphabet, we can build one as we
+  iterate through the data.
+
+\end{itemize}
+
+\section{Phase II: Grow the Looping Tree}
+
+\begin{enumerate}
+\item Begin with a single node which matches the null prefix, i.e., everything.
+  Set this to be a terminal node.
+\item For each terminal node, check whether $w$ is homogeneous
+  \begin{enumerate}
+  \item If $\homog(w)$, leave $w$ alone.
+  \item If $\neg\homog(w)$, delete $w$ from the set of terminal nodes (but
+    leave its node in the tree).  For each symbol $a$ from the alphabet, add
+    child nodes for each $aw$, unless that string does not occur in the input
+    data.  For each created child node $aw$, check whether $aw=eq$ for some
+    excisable prefix $e$ and suffix $q$.
+    \begin{enumerate}
+    \item If so, delete the node $aw$, and create a loop from $w$ to $q$ with
+      the label $a$.
+    \item If not \sout{(i.e., if $aw$ has no excisable prefix), check whether
+      $\match(aw,r)$ for some existing terminal node $r$.} add $aw$ to the set
+      of terminal nodes (edge set checks will happen during refinement).
+      \begin{enumerate}
+      \item \sout{If so, delete the node $aw$ and create an edge labeled $a$ from $w$
+        to $r$.}
+      \item \sout{If not, add $aw$ to the set of terminal nodes.}
+      \end{enumerate}
+    \end{enumerate}
+  \end{enumerate}
+\item Continue until all terminal nodes are homogeneous.
+\end{enumerate}
+
+\section{Phase III: Refine the Looping Tree}
+
+I propose that refinement be broken into two sub-phases: refinement of
+loops and transistions and merging of edgesets.
+
+First, we initialize a transition map from terminals to looping nodes.
+
+Next, refinement (same as before):
+
+\begin{tabbing}
+  until \= (no change)\\
+  \> for \= each terminal node $t$\\
+  \> \> for \= each non-looping path $w$ to $t$\\
+  \> \> \> for \= each symbol $a$ in the alphabet\\
+  \> \> \> \> follow the path $wa$ in the tree\\
+  \> \> \> \> if $wa$ leads to a terminal node, continue {\bf and record}\\
+  \> \> \> \> {\bf else if} \= ($==$ $wa$ does not lead to a terminal node)\\
+  \> \> \> \> \> copy the sub-looping-tree rooted at (the node reached by) $wa$\\
+  \> \> \> \> \> to $t$, giving all terminal nodes the predictive distribution of $t$\\
+  \> \> \> \> {\bf else break inner-most loop}
+\end{tabbing}
+
+Now, merge edgesets:
+
+\begin{itemize}
+  \item Given a map of collected transitions \texttt{Map Terminal -> Node}
+  \begin{itemize}
+    \item group collected transitions \textit{by the exact set of nodes
+    transitioned to \textbf{or by any transition subset found}}.
+  \end{itemize}
+  \item throw away the transitions and look only at the grouped terminals.
+  \item iterate through each group, partition groups by checking for
+    \textbf{matching} distributions
+  \item ignoring singleton groups, merge terminals into "edgesets":
+  \item if any merging occurred, restart refinement.
+\end{itemize}
+
+Merging terminals into edgesets by matching transitions and distributions gets
+us out of the Tricky Hidden Markov Model situation, see edgecase from earlier
+email. However, this causes us to break our logic in handling Holmes' and
+Isabelle's flip machine (the original motivation for using looping trees). It
+breaks down in the following manner:
+
+
+\appendix
+
+\section{Definitions}
+
+\begin{itemize}
+\item Two words $u$, $v$ {\bf match} iff they lead to the same prediction for
+  the next step.  Write this $\match(u,v)$.
+\item A word $w$ is {\bf homogeneous} iff, for any prefix $u$, $\match(w,uw)$.
+  Write this $\homog(w)$.  This means earlier history is irrelevant,
+  conditional on $w$.
+\item If $w=eq$, then the prefix $e$ is {\bf excisable} from $w$ iff, for all
+  prefixes $p$, $\match(peq, pq)$.  That is, inserting the extra history $e$
+  before $q$ makes no difference to predictions.
+\end{itemize}
+
+
+
+\end{document}
