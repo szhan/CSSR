@@ -7,6 +7,7 @@ module CSSR.Prelude
   , module Data.Monoid
   , module Control.Monad.ST
   , module Debug.Trace
+  , module Data.List
 
   , module CSSR.TypeAliases
   ) where
@@ -18,6 +19,7 @@ import qualified Data.HashSet as X (HashSet)
 import Control.Monad.ST
 import Lens.Micro.Platform
 import Data.Monoid
+import Data.List
 import CSSR.TypeAliases
 import Debug.Trace
 

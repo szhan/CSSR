@@ -10,26 +10,26 @@ import CSSR.Prelude
 data Alphabet = Alphabet
   { idxToSym :: Vector Event
   , symToIdx :: HashMap Event Int
-  , set_ :: HashSet Event -- for testing
-  } deriving (Show, Eq)
+  } deriving (Eq)
 
 mkAlphabet :: HashSet Event -> Alphabet
-mkAlphabet alphas = Alphabet (V.fromList list) (HM.fromList $ zip list [0..]) alphas
+mkAlphabet alphas = Alphabet (V.fromList list) (HM.fromList $ zip list [0..])
   where
     list :: [Event]
     list = HS.toList alphas
 
-data HistTree = HL
-  { ht_obs :: String
-  , frequency :: Vector Integer
-  , ht_children :: HashMap Char HistTree
-  } deriving (Show)
+instance Show Alphabet where
+  -- a little convoluted in the case of strings
+  show (Alphabet vec _) = "alphabet: [" ++ alphaList ++ "]"
+    where
+      alphaList :: String
+      alphaList = intercalate "," (map show . V.toList $ vec)
 
-data LoopingTree = LL
-  { obs :: String
-  , children :: HashMap Char LoopingTree
-  , isLoop :: Bool
-  , histories :: HashSet HistTree
-  }
-
+-- data LoopingTree = LL
+--   { obs :: String
+--   , children :: HashMap Char LoopingTree
+--   , isLoop :: Bool
+--   , histories :: HashSet HistTree
+--   }
+--
 
