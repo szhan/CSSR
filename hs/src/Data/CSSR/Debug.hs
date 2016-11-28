@@ -1,7 +1,7 @@
 module Data.CSSR.Debug where
 
 import Data.List
-import Data.CSSR.Types
+import Data.CSSR.Alphabet
 
 --hypothesisTesting testCase states =
 --  intercalate "\n"

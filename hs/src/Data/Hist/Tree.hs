@@ -15,7 +15,7 @@ import Lens.Micro.Internal
 import Data.Parse.Tree (ParseTree(..), PLeaf(..), PLeafBody(..))
 import qualified Data.Parse.Tree as Parse
 import qualified Data.Parse.MTree as M
-import Data.CSSR.Types
+import Data.CSSR.Alphabet
 import CSSR.Prelude
 
 

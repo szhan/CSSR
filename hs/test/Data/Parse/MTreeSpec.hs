@@ -2,7 +2,7 @@ module Data.Parse.MTreeSpec where
 
 import Data.Parse.MTree
 import Data.Parse.Tree
-import Data.CSSR.Types (idxToSym)
+import Data.CSSR.Alphabet
 import qualified Data.HashSet as HS
 import qualified Data.Vector as V
 

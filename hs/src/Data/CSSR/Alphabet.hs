@@ -1,4 +1,4 @@
-module Data.CSSR.Types where
+module Data.CSSR.Alphabet where
 
 import qualified Data.HashMap.Strict as HM
 import qualified Data.HashSet as HS
@@ -25,11 +25,4 @@ instance Show Alphabet where
       alphaList :: String
       alphaList = intercalate "," (map show . V.toList $ vec)
 
--- data LoopingTree = LL
---   { obs :: String
---   , children :: HashMap Char LoopingTree
---   , isLoop :: Bool
---   , histories :: HashSet HistTree
---   }
---
 

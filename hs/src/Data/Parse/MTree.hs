@@ -12,7 +12,7 @@ import Data.Foldable
 
 import CSSR.Prelude
 import CSSR.TypeAliases
-import Data.CSSR.Types
+import Data.CSSR.Alphabet
 import Data.Parse.Tree
 
 data MPLeaf s = MPLeaf
