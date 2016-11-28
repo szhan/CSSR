@@ -1,6 +1,7 @@
 module CSSR.TypeAliases where
 
-import CSSR.Prelude
+import Data.HashMap.Strict (HashMap)
+import Data.Vector (Vector)
 
 type Locations = HashMap Idx Integer
 type Idx = Integer
