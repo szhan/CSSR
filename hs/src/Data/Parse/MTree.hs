@@ -1,8 +1,8 @@
 {-# LANGUAGE ViewPatterns #-}
 module Data.Parse.MTree where
 
-import Control.Monad.ST
 import Data.STRef
+import qualified Data.HashSet as HS
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Vector as V
 import Data.Vector (Vector, (!))
@@ -12,6 +12,7 @@ import Data.Foldable
 
 import CSSR.Prelude
 import CSSR.TypeAliases
+import Data.CSSR.Types
 import Data.Parse.Tree
 
 data MPLeaf s = MPLeaf
@@ -75,11 +76,13 @@ freeze (MPLeaf o c childs) = do
     step (e, mlf) hm = HM.insert e <$> freeze mlf <*> pure hm
 
 
-buildMTree :: Int -> DataFileContents -> ST s (MPLeaf s)
+buildMTree :: Int -> DataFileContents -> ST s (MPLeaf s, Alphabet)
 buildMTree n' (V.filter isValid -> cs) = do
   rt <- mkMRoot
   forM_ [0 .. V.length cs] (\i -> addPath (sliceEvents i) rt)
-  return rt
+  -- FIXME: remove this second fold with (the Folds library?)
+  let alphas = foldr (\set evt -> HS.insert set evt) mempty cs
+  return (rt, mkAlphabet alphas)
   where
     n :: Int
     n = n' + 1
@@ -90,8 +93,15 @@ buildMTree n' (V.filter isValid -> cs) = do
       | i + n' <= length cs = V.slice i (length cs - i) cs -- ^but also the depth
       | otherwise          = V.empty -- ^ignore all others
 
+isValid :: Event -> Bool
+isValid e = not . HS.member e . HS.fromList $ ['\r', '\n']
 
+buildTree :: Int -> DataFileContents -> (ParseTree, Alphabet)
+buildTree n df = (ParseTree n rt, alpha)
+  where
+    (rt, alpha) = runST $ do
+      (rt', alpha') <- buildMTree n df
+      lf <- freeze rt'
+      return (lf, alpha')
 
-buildTree :: Int -> DataFileContents -> ParseTree
-buildTree n df = ParseTree n (runST $ buildMTree n df >>= freeze)
 

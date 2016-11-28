@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -8,7 +7,6 @@
 module Data.Parse.Tree where
 
 import Data.List
-import qualified Data.HashSet as HS
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Vector as V
 import Lens.Micro.Internal
@@ -64,20 +62,6 @@ type Parent = Maybe PLeaf
 makeLenses ''PLeafBody
 makeLenses ''PLeaf
 makeLenses ''ParseTree
-
--------------------------------------------------------------------------------
--- helpers
--------------------------------------------------------------------------------
-
-current :: Vector Event -> Event
-current = V.last
-
-prior :: Vector Event -> Vector Event
-prior = V.init
-
-isValid :: Event -> Bool
-isValid e = not $ HS.member e ['\r', '\n']
-
 
 -------------------------------------------------------------------------------
 -- Lenses for Parse Trees

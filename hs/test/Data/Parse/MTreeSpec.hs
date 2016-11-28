@@ -2,6 +2,8 @@ module Data.Parse.MTreeSpec where
 
 import Data.Parse.MTree
 import Data.Parse.Tree
+import Data.CSSR.Types (idxToSym)
+import qualified Data.HashSet as HS
 import qualified Data.Vector as V
 
 import CSSR.Prelude.Test
@@ -40,11 +42,16 @@ addPathSpec =
 -------------------------------------------------------------------------------
 
 buildTreeSpec :: Spec
-buildTreeSpec =
+buildTreeSpec = do
   describe "when we build the tree \"abcc\" with depth 2" $ do
-    it "the tree has depth 2" $ view depth tree == 2
-    let rt = view root tree
+    let (tree, alpha) = buildTree 2 (V.fromList "abcc")
+    it "the tree has depth 2" $
+      view depth tree == 2
 
+    it "finds an alphabet \"abc\"" $
+      V.all (\s -> HS.member s $ HS.fromList "abc") (idxToSym alpha)
+
+    let rt = view root tree
     it "the root node sees 3 traversals" $ view (body . count) rt == 3
 
     childChecks "root" rt 'c' (V.fromList "c") 3
@@ -63,10 +70,6 @@ buildTreeSpec =
     let _bc = findLeaf _c 'b'
     childChecks (show "bc") _bc 'a' (V.fromList "abc") 1
     noChildrenTest (show "abc") $ findLeaf _bc 'a'
-
-  where
-    tree :: ParseTree
-    tree = buildTree 2 (V.fromList "abcc")
 
 
 -------------------------------------------------------------------------------
