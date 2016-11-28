@@ -8,6 +8,7 @@ module Data.Hist.Tree where
 
 import Data.List
 import qualified Data.HashMap.Strict as HM
+import Data.Vector ((!))
 import qualified Data.Vector as V
 import Lens.Micro.Internal
 
@@ -69,12 +70,15 @@ makeLenses ''HistTree
 -- Convert ParseTree to HistTree
 -------------------------------------------------------------------------------
 
-convert :: Alphabet -> ParseTree -> HistTree
-convert alpha (ParseTree d rt) = HistTree d alpha (go rt)
+convert :: ParseTree -> Alphabet -> HistTree
+convert (ParseTree d rt) alpha = HistTree d alpha (go d rt)
   where
-    go :: PLeaf -> HLeaf
-    go (PLeaf (PLeafBody o _ _) cs) =
-      HLeaf (HLeafBody o (mkFrequency cs alpha)) (HM.map go cs)
+    go :: Int -> PLeaf -> HLeaf
+    go 0 lf = mkHLeaf lf mempty
+    go d lf = mkHLeaf lf (HM.map (go (d-1)) $ view Parse.children lf)
+
+    mkHLeaf :: PLeaf -> HashMap Event HLeaf -> HLeaf
+    mkHLeaf (PLeaf (PLeafBody o _ _) cs) = HLeaf (HLeafBody o (mkFrequency cs alpha))
 
     mkFrequency :: HashMap Event PLeaf -> Alphabet -> Vector Integer
     mkFrequency cs (Alphabet vec _) =
@@ -94,22 +98,35 @@ type instance IxValue HLeaf = HLeaf
 --
 instance Ixed HLeaf where
   ix :: Vector Event -> Traversal' HLeaf (IxValue HLeaf)
-  ix histories = go 0
+  ix histories = go (V.length histories - 1)
     where
-      go dpth f p@(HLeaf bod childs)
-        | V.length histories == dpth = f p
+      go 0 f p = f p
+      go d f p@(HLeaf bod childs)
+        | d <= 0 = f p
         | otherwise =
           case HM.lookup c childs of
             Nothing -> pure p
-            Just child -> goAgain <$> go (dpth+1) f child
+            Just child -> goAgain <$> go (d-1) f child
         where
           c :: Event
-          c = histories V.! dpth
+          c = histories V.! d
 
           goAgain :: HLeaf -> HLeaf
           goAgain child' = HLeaf bod (HM.insert c child' childs)
 
 navigate :: HistTree -> Vector Event -> Maybe HLeaf
-navigate tree history = view root tree ^? ix history
+navigate tree history
+  | V.null history = Just (view root tree)
+  | otherwise = go (V.length history) (view root tree)
+  where
+    go :: Int -> HLeaf -> Maybe HLeaf
+    go 0 lf = Just lf
+    go d (HLeaf bod childs) =
+      let nxt = d - 1
+      in case HM.lookup (history ! nxt) childs of
+        Just child -> go nxt child
+        _ -> Nothing
+
+
 
 

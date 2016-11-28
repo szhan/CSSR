@@ -8,6 +8,7 @@ module CSSR.Prelude
   , module Control.Monad.ST
   , module Debug.Trace
   , module Data.List
+  , module Control.Exception
 
   , module CSSR.TypeAliases
   ) where
@@ -22,4 +23,5 @@ import Data.Monoid
 import Data.List
 import CSSR.TypeAliases
 import Debug.Trace
+import Control.Exception
 
