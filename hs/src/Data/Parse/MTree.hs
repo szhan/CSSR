@@ -3,7 +3,6 @@ module Data.Parse.MTree where
 
 import Control.Monad.ST
 import Data.STRef
-import Control.Exception (assert)
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Vector as V
 import Data.Vector (Vector, (!))
@@ -45,32 +44,32 @@ addPath events = go (V.length events)
   where
     go :: Int -> MPLeaf s -> ST s ()
     go 0 _ = return ()
-    go depth lf@(MPLeaf _ c childs) = do
+    go dpth lf@(MPLeaf _ c childs) = do
       modifySTRef c (+1)
       mchild <- H.lookup childs h
       case mchild of
-        Just child -> go (depth - 1) child
-        Nothing -> go2 depth lf
+        Just child -> go (dpth - 1) child
+        Nothing -> go2 dpth lf
       where
         h :: Event
-        h = events ! (depth - 1)
+        h = events ! (dpth - 1)
 
     go2 :: Int -> MPLeaf s -> ST s ()
     go2 0 _ = return ()
-    go2 depth (MPLeaf _ _ childs) = do
-      lf <- mkMPLeaf $ V.drop (depth - 1) events
+    go2 dpth (MPLeaf _ _ childs) = do
+      lf <- mkMPLeaf $ V.drop (dpth - 1) events
       H.insert childs h lf
-      go2 (depth-1) lf
+      go2 (dpth-1) lf
       where
         h :: Event
-        h = events ! (depth - 1)
+        h = events ! (dpth - 1)
 
 
 freeze :: MPLeaf s -> ST s PLeaf
 freeze (MPLeaf o c childs) = do
-  body <- PLeafBody o <$> readSTRef c <*> pure mempty
+  bod <- PLeafBody o <$> readSTRef c <*> pure mempty
   childs' <- H.toList childs
-  PLeaf body <$> (foldrM step mempty childs')
+  PLeaf bod <$> (foldrM step mempty childs')
   where
     step :: (Event, MPLeaf s) -> HashMap Event PLeaf -> ST s (HashMap Event PLeaf)
     step (e, mlf) hm = HM.insert e <$> freeze mlf <*> pure hm
@@ -78,9 +77,9 @@ freeze (MPLeaf o c childs) = do
 
 buildMTree :: Int -> DataFileContents -> ST s (MPLeaf s)
 buildMTree n' (V.filter isValid -> cs) = do
-  root <- mkMRoot
-  forM_ [0 .. V.length cs] (\i -> addPath (sliceEvents i) root)
-  return root
+  rt <- mkMRoot
+  forM_ [0 .. V.length cs] (\i -> addPath (sliceEvents i) rt)
+  return rt
   where
     n :: Int
     n = n' + 1
@@ -93,3 +92,4 @@ buildMTree n' (V.filter isValid -> cs) = do
 
 buildTree :: Int -> DataFileContents -> ParseTree
 buildTree n df = ParseTree n (runST $ buildMTree n df >>= freeze)
+
