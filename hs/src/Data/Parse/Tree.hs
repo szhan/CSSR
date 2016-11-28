@@ -22,7 +22,10 @@ import CSSR.Prelude
 data ParseTree = ParseTree
   { depth :: Int
   , root :: PLeaf
-  } deriving (Show, Eq)
+  } deriving (Eq)
+
+instance Show ParseTree where
+  show (ParseTree d r) = "ParseTree{depth: " ++ show d ++ "}\n  root:" ++ show r
 
 data PLeaf = PLeaf
   { _body :: PLeafBody
@@ -30,10 +33,20 @@ data PLeaf = PLeaf
   } deriving (Eq)
 
 instance Show PLeaf where
-  show (PLeaf b cs) = "PLeaf {" ++ show b ++ ", children: [" ++ childs ++  "]}"
+  show = go 1 ' '
     where
-      childs :: String
-      childs = intercalate "\r" ((("\n\t, "++) . show) <$> (HM.toList cs))
+      indent :: Int -> String
+      indent d = replicate (5 * d) ' '
+
+      showLeaf :: Int -> Event -> PLeafBody -> String
+      showLeaf d e b = "\n" ++ indent d ++ show e ++"->PLeaf{" ++ show b
+
+      go :: Int -> Event -> PLeaf -> String
+      go d e (PLeaf b cs)
+        | length cs == 0 = showLeaf d e b ++ ", no children}"
+        | otherwise = showLeaf d e b ++ "}\n"
+                      ++ indent (d + 1) ++ "children:"
+                      ++ (intercalate "\n" . map (uncurry (go (d+1))) . HM.toList $ cs)
 
 data PLeafBody = PLeafBody
   { _obs       :: Vector Event
@@ -50,6 +63,7 @@ type Parent = Maybe PLeaf
 
 makeLenses ''PLeafBody
 makeLenses ''PLeaf
+makeLenses ''ParseTree
 
 -------------------------------------------------------------------------------
 -- helpers
