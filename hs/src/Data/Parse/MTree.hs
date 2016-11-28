@@ -44,25 +44,25 @@ addPath events = go (V.length events)
   where
     go :: Int -> MPLeaf s -> ST s ()
     go 0 _ = return ()
-    go dpth lf@(MPLeaf _ c childs) = do
+    go dp lf@(MPLeaf _ c childs) = do
       modifySTRef c (+1)
       mchild <- H.lookup childs h
       case mchild of
-        Just child -> go (dpth - 1) child
-        Nothing -> go2 dpth lf
+        Just child -> go (dp - 1) child
+        Nothing -> go2 dp lf
       where
         h :: Event
-        h = events ! (dpth - 1)
+        h = events ! (dp - 1)
 
     go2 :: Int -> MPLeaf s -> ST s ()
     go2 0 _ = return ()
-    go2 dpth (MPLeaf _ _ childs) = do
-      lf <- mkMPLeaf $ V.drop (dpth - 1) events
+    go2 dp (MPLeaf _ _ childs) = do
+      lf <- mkMPLeaf $ V.drop (dp - 1) events
       H.insert childs h lf
-      go2 (dpth-1) lf
+      go2 (dp-1) lf
       where
         h :: Event
-        h = events ! (dpth - 1)
+        h = events ! (dp - 1)
 
 
 freeze :: MPLeaf s -> ST s PLeaf
@@ -86,8 +86,10 @@ buildMTree n' (V.filter isValid -> cs) = do
 
     sliceEvents :: Int -> Vector Event
     sliceEvents i
-      | i + n < length cs = V.slice i n cs
-      | otherwise         = V.slice i (length cs - i) cs
+      | i + n  <= length cs = V.slice i n cs -- ^get all children of depth
+      | i + n' <= length cs = V.slice i (length cs - i) cs -- ^but also the depth
+      | otherwise          = V.empty -- ^ignore all others
+
 
 
 buildTree :: Int -> DataFileContents -> ParseTree

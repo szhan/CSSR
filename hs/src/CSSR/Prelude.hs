@@ -6,6 +6,7 @@ module CSSR.Prelude
   , module Lens.Micro.Platform
   , module Data.Monoid
   , module Control.Monad.ST
+  , module Debug.Trace
 
   , module CSSR.TypeAliases
   ) where
@@ -18,5 +19,5 @@ import Control.Monad.ST
 import Lens.Micro.Platform
 import Data.Monoid
 import CSSR.TypeAliases
-
+import Debug.Trace
 

@@ -20,8 +20,8 @@ import CSSR.Prelude
 -------------------------------------------------------------------------------
 
 data ParseTree = ParseTree
-  { depth :: Int
-  , root :: PLeaf
+  { _depth :: Int
+  , _root :: PLeaf
   } deriving (Eq)
 
 instance Show ParseTree where
@@ -56,7 +56,7 @@ data PLeafBody = PLeafBody
 
 instance Show PLeafBody where
   show (PLeafBody o c _) =
-    "obs: " ++ show o ++ ", count: " ++ show c ++ ", ls: " ++ show c
+    "obs: " ++ show o ++ ", count: " ++ show c ++ ", ls: " ++ "<>"
 
 type Children = HashMap Event PLeaf
 type Parent = Maybe PLeaf
@@ -105,7 +105,7 @@ instance Ixed PLeaf where
           goAgain child' = PLeaf bod (HM.insert c child' childs)
 
 navigate :: ParseTree -> Vector Event -> Maybe PLeaf
-navigate tree history = (root tree) ^? ix history
+navigate tree history = view root tree ^? ix history
 
 -------------------------------------------------------------------------------
 -- Unused: Pure creation of a Parse Tree. This is commented out in case we want
