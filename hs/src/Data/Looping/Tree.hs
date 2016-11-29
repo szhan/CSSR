@@ -6,6 +6,8 @@ import qualified Data.HashSet as HS
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Vector as V
 import Data.Vector (Vector, (!))
+import Data.Vector.Mutable (MVector)
+import qualified Data.Vector.Mutable as MV
 import qualified Data.HashTable.ST.Cuckoo as C
 import qualified Data.HashTable.Class as H
 import Data.Foldable
@@ -15,54 +17,59 @@ import Data.CSSR.Alphabet
 import Data.Hist.Tree
 
 -------------------------------------------------------------------------------
--- Looping Tree ADTs
+-- Mutable Looping Tree ADTs
 -------------------------------------------------------------------------------
-data LoopingTree = LoopingTree
-  { _alphabet :: Alphabet
-  , _root :: LLeaf
-  } deriving (Eq)
+data MLLeaf s = MLLeaf
+  { _isLoop    :: STRef s Bool
+  -- | for lack of a mutable hashset implementation
+  , _histories :: C.HashTable s (HashSet HLeaf) Bool
+  , _frequency :: MVector s Integer
+  , _children :: C.HashTable s Event (MLLeaf s)
+  }
 
-data LLeaf = LLeaf
-  { _body :: LLeafBody
-  , _children :: HashMap Event LLeaf
-  } deriving (Eq)
+mkRoot :: Alphabet -> ST s (MLLeaf s)
+mkRoot (Alphabet vec _) =
+  MLLeaf <$> newSTRef False <*> H.new <*> MV.replicate (V.length vec) 0 <*> H.new
 
-data LLeafBody = LLeafBody
-  { _obs       :: Vector Event
-  , _isLoop    :: Bool
-  , _histories :: HashSet HLeaf
-  , _frequency :: Vector Integer
-  } deriving (Eq)
+grow :: HistTree -> ST s (MLLeaf s)
+grow (HistTree _ a hRoot) = do
+  rt <- mkRoot a
+  go [hRoot] rt
+  return rt
 
-instance Show LoopingTree where
-  show (LoopingTree a r) = "LoopingTree {"++ show a ++"}\n  root:" ++ show r
+  where
+    go :: [HLeaf] -> MLLeaf s -> ST s ()
+    go             [] lf = return ()
+    go (active:queue) lf = go queue lf
 
-instance Show LLeaf where
-  show = go 1 ' '
-    where
-      indent :: Int -> String
-      indent d = replicate (5 * d) ' '
-
-      showLeaf :: Int -> Event -> LLeafBody -> String
-      showLeaf d e b = "\n" ++ indent d ++ show e ++"->LLeaf{" ++ show b
-
-      go :: Int -> Event -> LLeaf -> String
-      go d e (LLeaf b cs)
-        | length cs == 0 = showLeaf d e b ++ ", no children}"
-        | otherwise = showLeaf d e b ++ "}\n"
-                      ++ indent (d + 1) ++ "children:"
-                      ++ (intercalate "\n" . map (uncurry (go (d+1))) . HM.toList $ cs)
-
-instance Show LLeafBody where
-  show (LLeafBody o isL hs fq) = intercalate ", "
-    [ "obs: " ++ show o
-    , "isLoop: " ++ show isL
-    , "histories: " ++ show hs
-    , "freq: " ++ show fq
-    ]
-
-makeLenses ''LLeafBody
-makeLenses ''LLeaf
-makeLenses ''LoopingTree
-
-
+--     val ltree = new LoopingTree(tree)
+--     val activeQueue = ListBuffer[MLLeaf](ltree.root)
+--     val findAlternative = LoopingTree.findAlt(ltree)(_)
+--
+--     while (activeQueue.nonEmpty) {
+--       val active:MLLeaf = activeQueue.remove(0)
+--       val isHomogeneous:Boolean = active.histories.forall{ LoopingTree.nextHomogeneous(tree) }
+--
+--       if (isHomogeneous) {
+--         debug("we've hit our base case")
+--       } else {
+--
+--         val nextChildren:Map[Char, LoopingTree.Node] = active.histories
+--           .flatMap { _.children }
+--           .groupBy{ _.observation }
+--           .map { case (c, pleaves) => {
+--             val lleaf:MLLeaf = new MLLeaf(c + active.observed, pleaves, Option(active))
+--             val alternative:Option[LoopingTree.AltNode] = findAlternative(lleaf)
+--             c -> alternative.toRight(lleaf)
+--           } }
+--
+--         active.children ++= nextChildren
+--         // Now that active has children, it cannot be considered a terminal node. Thus, we elide the active node:
+--         ltree.terminals = ltree.terminals ++ LoopingTree.leafChildren(nextChildren).toSet[MLLeaf] - active
+--         // FIXME: how do edge-sets handle the removal of an active node? Also, are they considered terminal?
+--         activeQueue ++= LoopingTree.leafChildren(nextChildren)
+--       }
+--     }
+--
+--     ltree
+--   }
