@@ -2,6 +2,7 @@ module CSSR.Prelude
   ( X.Vector
   , X.HashMap
   , X.HashSet
+  , Generic
 
   , module Lens.Micro.Platform
   , module Data.Monoid
@@ -9,6 +10,7 @@ module CSSR.Prelude
   , module Debug.Trace
   , module Data.List
   , module Control.Exception
+  , module Data.Hashable
 
   , module CSSR.TypeAliases
   ) where
@@ -24,4 +26,6 @@ import Data.List
 import CSSR.TypeAliases
 import Debug.Trace
 import Control.Exception
+import GHC.Generics (Generic)
+import Data.Hashable
 

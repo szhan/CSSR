@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric #-}
 module Data.CSSR.Alphabet where
 
 import qualified Data.HashMap.Strict as HM
@@ -10,7 +11,7 @@ import CSSR.Prelude
 data Alphabet = Alphabet
   { idxToSym :: Vector Event
   , symToIdx :: HashMap Event Int
-  } deriving (Eq)
+  } deriving (Eq, Generic)
 
 mkAlphabet :: HashSet Event -> Alphabet
 mkAlphabet alphas = Alphabet (V.fromList list) (HM.fromList $ zip list [0..])
@@ -25,4 +26,5 @@ instance Show Alphabet where
       alphaList :: String
       alphaList = intercalate "," (map show . V.toList $ vec)
 
+instance Hashable Alphabet
 

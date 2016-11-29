@@ -3,6 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Data.Hist.Tree where
 
@@ -11,10 +12,11 @@ import qualified Data.HashMap.Strict as HM
 import Data.Vector ((!))
 import qualified Data.Vector as V
 import Lens.Micro.Internal
+import GHC.Generics (Generic)
+import Data.Hashable
 
 import Data.Parse.Tree (ParseTree(..), PLeaf(..), PLeafBody(..))
 import qualified Data.Parse.Tree as Parse
-import qualified Data.Parse.MTree as M
 import Data.CSSR.Alphabet
 import CSSR.Prelude
 
@@ -26,17 +28,17 @@ data HistTree = HistTree
   { _depth :: Int
   , _alphabet :: Alphabet
   , _root :: HLeaf
-  } deriving (Eq)
+  } deriving (Eq, Generic)
 
 data HLeaf = HLeaf
   { _body :: HLeafBody
   , _children :: HashMap Event HLeaf
-  } deriving (Eq)
+  } deriving (Eq, Generic)
 
 data HLeafBody = HLeafBody
   { _obs       :: Vector Event
   , _frequency :: Vector Integer
-  } deriving (Eq)
+  } deriving (Eq, Generic)
 
 instance Show HistTree where
   show (HistTree d a r) = "HistTree {depth " ++ show d ++ ", "++ show a ++"}\n  root:" ++ show r
@@ -60,6 +62,10 @@ instance Show HLeaf where
 instance Show HLeafBody where
   show (HLeafBody o c) =
     "obs: " ++ show o ++ ", freq: " ++ show c
+
+instance Hashable HLeafBody
+instance Hashable HLeaf
+instance Hashable HistTree
 
 makeLenses ''HLeafBody
 makeLenses ''HLeaf

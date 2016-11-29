@@ -24,7 +24,7 @@ library
   hs-source-dirs:
       src
   default-extensions: MultiParamTypeClasses OverloadedStrings PatternSynonyms TypeFamilies
-  ghc-options: -fno-warn-hi-shadowing -Wall
+  ghc-options: -fno-warn-name-shadowing
   build-depends:
       base
     , bytestring
@@ -41,12 +41,15 @@ library
     , microlens
     , hashtables
   exposed-modules:
+      CSSR.Algorithm
       CSSR.Prelude
       CSSR.TypeAliases
+      Data.CSSR.Alphabet
       Data.CSSR.Debug
       Data.CSSR.Test
       Data.CSSR.Tree
-      Data.CSSR.Types
+      Data.Hist.Tree
+      Data.Looping.Tree
       Data.Parse.MTree
       Data.Parse.Tree
       Data.Statistics.Entropy.Rate
@@ -59,7 +62,7 @@ executable schema-prediction
   hs-source-dirs:
       app
   default-extensions: MultiParamTypeClasses OverloadedStrings PatternSynonyms TypeFamilies
-  ghc-options: -fno-warn-hi-shadowing -Wall
+  ghc-options: -fno-warn-name-shadowing
   build-depends:
       base
     , bytestring
@@ -87,7 +90,7 @@ test-suite spec
   hs-source-dirs:
       test
   default-extensions: MultiParamTypeClasses OverloadedStrings PatternSynonyms TypeFamilies
-  ghc-options: -fno-warn-hi-shadowing -Wall
+  ghc-options: -fno-warn-name-shadowing
   build-depends:
       base
     , bytestring
@@ -108,6 +111,7 @@ test-suite spec
     , QuickCheck
   other-modules:
       CSSR.Prelude.Test
+      Data.Hist.TreeSpec
       Data.Parse.MTreeSpec
   default-language: Haskell2010
 
@@ -117,7 +121,7 @@ benchmark bench
   hs-source-dirs:
       bench
   default-extensions: MultiParamTypeClasses OverloadedStrings PatternSynonyms TypeFamilies
-  ghc-options: -fno-warn-hi-shadowing -Wall -O2
+  ghc-options: -fno-warn-name-shadowing -O2
   build-depends:
       base
     , bytestring

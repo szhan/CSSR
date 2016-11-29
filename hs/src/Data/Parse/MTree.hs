@@ -11,7 +11,6 @@ import qualified Data.HashTable.Class as H
 import Data.Foldable
 
 import CSSR.Prelude
-import CSSR.TypeAliases
 import Data.CSSR.Alphabet
 import Data.Parse.Tree
 
@@ -81,7 +80,7 @@ buildMTree n' (V.filter isValid -> cs) = do
   rt <- mkMRoot
   forM_ [0 .. V.length cs] (\i -> addPath (sliceEvents i) rt)
   -- FIXME: remove this second fold with (the Folds library?)
-  let alphas = foldr (\set evt -> HS.insert set evt) mempty cs
+  let alphas = foldr (\ss evt -> HS.insert ss evt) mempty cs
   return (rt, mkAlphabet alphas)
   where
     n :: Int
