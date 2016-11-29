@@ -1,5 +1,6 @@
 module Data.Statistics.KologorovSmirnov where
 
+import Control.Exception
 import Data.Function
 
 ---------------------------------------------------------------------------------
@@ -69,13 +70,13 @@ kstwo data1 n1 data2 n2 = probks $ ksstatistic data1 data2 * (en + 0.12 + (0.11 
 ---------------------------------------------------------------------------------
 -- the Kolmogorov-Smirnov statistic
 ---------------------------------------------------------------------------------
-ksstatistic ::
-  [Double] -- ^sample one's pdf, used to calculate the first ecdf
+ksstatistic
+  :: [Double] -- ^sample one's pdf, used to calculate the first ecdf
   -> [Double] -- ^sample two's pdf, used to calculate the second ecdf
-  -> Double -- ^the KS statistic: the supremum of the tow calculated ecdfs
+  -> Double   -- ^the KS statistic: the supremum of the tow calculated ecdfs
 ksstatistic data1 data2 =
-    -- assert(data1.length == data2.length)
-    foldr1 max $ map abs $ getAll data1 data2
+  assert (length data1 == length data2) $
+  foldr1 max $ map abs $ getAll data1 data2
   where
     -- | calc empirical cumulative distributions. Should have ascending order.
     ecdf :: [Double] -> [Double]
@@ -102,14 +103,16 @@ probks alam {-alam stands for "a lambda", I believe-}= go [1..100] 2 0 0
 
     go :: [Double] -> Double -> Double -> Double -> Double
     go    []  fac oldsum termBF = 1  -- Get here only by failing to converge.
-    go (j:js) fac oldsum termBF =
-      let
-        aterm, term, newsum :: Double
+    go (j:js) fac oldsum termBF
+      | (aterm <= eps1 * termBF) || (aterm  <= eps2 * newsum) = newsum
+      | otherwise = go js (-1 * fac) newsum aterm
+      where
+        term :: Double
         term = fac * exp (a2 * j * j)
+
+        newsum :: Double
         newsum = oldsum + term
+
+        aterm :: Double
         aterm = abs term
-      in
-        if (aterm <= eps1 * termBF) || (aterm  <= eps2 * newsum)
-        then newsum
-        else go js (-1 * fac) newsum aterm
 
