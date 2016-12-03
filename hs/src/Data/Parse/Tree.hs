@@ -8,6 +8,7 @@ module Data.Parse.Tree where
 
 import Data.List
 import qualified Data.HashMap.Strict as HM
+import qualified Data.HashSet as HS
 import qualified Data.Vector as V
 import Lens.Micro.Internal
 
@@ -44,7 +45,10 @@ instance Show PLeaf where
         | length cs == 0 = showLeaf d e b ++ ", no children}"
         | otherwise = showLeaf d e b ++ "}\n"
                       ++ indent (d + 1) ++ "children:"
-                      ++ (intercalate "\n" . map (uncurry (go (d+1))) . HM.toList $ cs)
+                      ++ printChilds d cs
+
+      printChilds :: Int -> Children -> String
+      printChilds d = intercalate "\n" . map (uncurry (go (d+1))) . HM.toList
 
 data PLeafBody = PLeafBody
   { _obs       :: Vector Event

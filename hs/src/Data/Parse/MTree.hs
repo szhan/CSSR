@@ -75,13 +75,11 @@ freeze (MPLeaf o c childs) = do
     step (e, mlf) hm = HM.insert e <$> freeze mlf <*> pure hm
 
 
-buildMTree :: Int -> DataFileContents -> ST s (MPLeaf s, Alphabet)
+buildMTree :: Int -> DataFileContents -> ST s (MPLeaf s)
 buildMTree n' (V.filter isValid -> cs) = do
   rt <- mkMRoot
   forM_ [0 .. V.length cs] (\i -> addPath (sliceEvents i) rt)
-  -- FIXME: remove this second fold with (the Folds library?)
-  let alphas = foldr (\ss evt -> HS.insert ss evt) mempty cs
-  return (rt, mkAlphabet alphas)
+  return rt
   where
     n :: Int
     n = n' + 1
@@ -95,12 +93,29 @@ buildMTree n' (V.filter isValid -> cs) = do
 isValid :: Event -> Bool
 isValid e = not . HS.member e . HS.fromList $ ['\r', '\n']
 
-buildTree :: Int -> DataFileContents -> (ParseTree, Alphabet)
-buildTree n df = (ParseTree n rt, alpha)
+-------------------------------------------------------------------------------
+-- Build a Parse Tree and get Alphabet
+-------------------------------------------------------------------------------
+
+buildTree :: Int -> DataFileContents -> ParseTree
+buildTree n df = ParseTree n rt
   where
-    (rt, alpha) = runST $ do
-      (rt', alpha') <- buildMTree n df
+    rt = runST $ do
+      rt' <- buildMTree n df
       lf <- freeze rt'
-      return (lf, alpha')
+      return lf
+
+getAlphabet :: ParseTree -> Alphabet
+getAlphabet (ParseTree _ rt) = mkAlphabet $ go mempty [rt]
+  where
+    go :: HashSet Event -> [PLeaf] -> HashSet Event
+    go es [] = es
+    go es cs = go (HS.union es (keys pairs)) (map snd pairs)
+      where
+        pairs :: [(Event, PLeaf)]
+        pairs = concatMap (HM.toList . view children) cs
+
+        keys :: [(Event, PLeaf)] -> HashSet Event
+        keys = HS.fromList . map fst
 
 
