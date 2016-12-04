@@ -13,8 +13,9 @@ main = hspec spec
 
 spec :: Spec
 spec = do
-  describe "addPath"   addPathSpec
-  describe "buildTree" buildTreeSpec
+  describe "addPath"     addPathSpec
+  describe "buildTree"   buildTreeSpec
+  describe "getAlphabet" alphabetSpec
 
 -------------------------------------------------------------------------------
 
@@ -44,12 +45,9 @@ addPathSpec =
 buildTreeSpec :: Spec
 buildTreeSpec = do
   describe "when we build the tree \"abcc\" with depth 2" $ do
-    let (tree, alpha) = buildTree 2 (V.fromList "abcc")
+    let tree = buildTree 2 (V.fromList "abcc")
     it "the tree has depth 2" $
       view depth tree == 2
-
-    it "finds an alphabet \"abc\"" $
-      V.all (\s -> HS.member s $ HS.fromList "abc") (idxToSym alpha)
 
     let rt = view root tree
     it "the root node sees 3 traversals" $ view (body . count) rt == 3
@@ -71,6 +69,11 @@ buildTreeSpec = do
     childChecks (show "bc") _bc 'a' (V.fromList "abc") 1
     noChildrenTest (show "abc") $ findLeaf _bc 'a'
 
+alphabetSpec :: Spec
+alphabetSpec =
+  it "building a tree from \"abcc\" finds the correct alphabet" $ do
+    let alpha = getAlphabet $ buildTree 2 (V.fromList "abcc")
+    V.all (\s -> HS.member s $ HS.fromList "abc") (idxToSym alpha)
 
 -------------------------------------------------------------------------------
 -- Helper functions

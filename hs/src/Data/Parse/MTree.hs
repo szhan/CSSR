@@ -98,12 +98,7 @@ isValid e = not . HS.member e . HS.fromList $ ['\r', '\n']
 -------------------------------------------------------------------------------
 
 buildTree :: Int -> DataFileContents -> ParseTree
-buildTree n df = ParseTree n rt
-  where
-    rt = runST $ do
-      rt' <- buildMTree n df
-      lf <- freeze rt'
-      return lf
+buildTree n df = ParseTree n (runST $ buildMTree n df >>= freeze)
 
 getAlphabet :: ParseTree -> Alphabet
 getAlphabet (ParseTree _ rt) = mkAlphabet $ go mempty [rt]
