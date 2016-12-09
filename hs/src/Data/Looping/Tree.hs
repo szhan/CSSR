@@ -14,33 +14,64 @@ import Data.Foldable
 
 import CSSR.Prelude
 import Data.CSSR.Alphabet
-import Data.Hist.Tree
+import Data.Hist.Tree (HLeaf, HLeafBody, HistTree(..))
+import qualified Data.Hist.Tree as Hist
+
+import Data.CSSR.Leaf.Probabilistic (Probabilistic)
+import qualified Data.CSSR.Leaf.Probabilistic as Prob
 
 -------------------------------------------------------------------------------
 -- Mutable Looping Tree ADTs
 -------------------------------------------------------------------------------
 data MLLeaf s = MLLeaf
   { _isLoop    :: STRef s Bool
-  -- | for lack of a mutable hashset implementation
-  , _histories :: C.HashTable s (HashSet HLeaf) Bool
+  -- | for lack of a mutable hash set implementation
+  , _histories :: C.HashTable s HLeaf Bool
   , _frequency :: MVector s Integer
   , _children :: C.HashTable s Event (MLLeaf s)
   }
+
+data LLeaf = LLeaf
+  { isLoop    :: Bool
+  , histories :: HashSet HLeaf
+  , frequency :: Vector Integer
+  , children  :: HashMap Event LLeaf
+  }
+
+instance Probabilistic LLeaf where
+  frequency = Data.Looping.Tree.frequency
 
 mkRoot :: Alphabet -> ST s (MLLeaf s)
 mkRoot (Alphabet vec _) =
   MLLeaf <$> newSTRef False <*> H.new <*> MV.replicate (V.length vec) 0 <*> H.new
 
+
 grow :: HistTree -> ST s (MLLeaf s)
 grow (HistTree _ a hRoot) = do
   rt <- mkRoot a
   go [hRoot] rt
+  -- let findAlternative = LoopingTree.findAlt(ltree)(_)
   return rt
 
   where
     go :: [HLeaf] -> MLLeaf s -> ST s ()
     go             [] lf = return ()
     go (active:queue) lf = go queue lf
+      where
+        isHomogeneous :: Bool
+        isHomogeneous = undefined
+
+
+isHomogeneous :: LLeaf -> Bool
+isHomogeneous ll = foldr step True allPChilds
+  where
+    allPChilds :: HashSet HLeaf
+    allPChilds = HS.fromList $
+      HS.toList (histories ll) >>= HM.elems . view Hist.children
+
+    step :: HLeaf -> Bool -> Bool
+    step _  False = False
+    step pc _     = Prob.matches ll pc
 
 --     val ltree = new LoopingTree(tree)
 --     val activeQueue = ListBuffer[MLLeaf](ltree.root)
