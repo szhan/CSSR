@@ -46,6 +46,7 @@ library
       CSSR.TypeAliases
       Data.CSSR.Alphabet
       Data.CSSR.Debug
+      Data.CSSR.Leaf.Probabilistic
       Data.CSSR.Test
       Data.CSSR.Tree
       Data.Hist.Tree

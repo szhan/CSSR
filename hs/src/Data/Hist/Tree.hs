@@ -15,6 +15,7 @@ import Lens.Micro.Internal
 import GHC.Generics (Generic)
 import Data.Hashable
 
+import Data.CSSR.Leaf.Probabilistic
 import Data.Parse.Tree (ParseTree(..), PLeaf(..), PLeafBody(..))
 import qualified Data.Parse.Tree as Parse
 import Data.CSSR.Alphabet
@@ -70,6 +71,10 @@ instance Hashable HistTree
 makeLenses ''HLeafBody
 makeLenses ''HLeaf
 makeLenses ''HistTree
+
+
+instance Probabilistic HLeaf where
+  frequency = view (body . Data.Hist.Tree.frequency)
 
 
 -------------------------------------------------------------------------------
