@@ -5,6 +5,7 @@ import qualified Data.Vector as V
 import CSSR.Prelude.Test
 import Data.Hist.Tree
 import qualified Data.Parse.MTree as M
+import Data.Parse.Tree (ParseTree)
 
 main :: IO ()
 main = hspec spec
@@ -42,7 +43,10 @@ spec = do
     findNode :: [Event] -> Maybe HLeaf
     findNode path = navigate tree . V.fromList $ path
 
+    ptree :: ParseTree
+    ptree = M.buildTree 2 (V.fromList "abcc")
+
     tree :: HistTree
-    tree = uncurry convert $ M.buildTree 2 (V.fromList "abcc")
+    tree = convert ptree (M.getAlphabet ptree)
 
 

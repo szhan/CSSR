@@ -81,18 +81,38 @@ convert (ParseTree d rt) alpha = HistTree d alpha (go d rt)
   where
     go :: Int -> PLeaf -> HLeaf
     go 0 lf = mkHLeaf lf mempty
-    go d lf = mkHLeaf lf (HM.map (go (d-1)) $ view Parse.children lf)
+    go d lf = mkHLeaf lf $ HM.map (go (d-1)) (view Parse.children lf)
 
     mkHLeaf :: PLeaf -> HashMap Event HLeaf -> HLeaf
-    mkHLeaf (PLeaf (PLeafBody o _ _) cs) = HLeaf (HLeafBody o (mkFrequency cs alpha))
+    mkHLeaf (PLeaf (PLeafBody o _ _) cs) = HLeaf (mkBody o cs)
+
+    mkBody :: Vector Event -> HashMap Event PLeaf -> HLeafBody
+    mkBody o cs = HLeafBody o (mkFrequency cs alpha)
 
     mkFrequency :: HashMap Event PLeaf -> Alphabet -> Vector Integer
     mkFrequency cs (Alphabet vec _) =
-      V.map (\s -> maybe 0 getCounts . HM.lookup s $ cs) vec
-      where
-        getCounts :: PLeaf -> Integer
-        getCounts = view (Parse.body . Parse.count)
+      V.map (\s -> (maybe 0 getCounts . HM.lookup s) cs) vec
 
+    getCounts :: PLeaf -> Integer
+    getCounts = view (Parse.body . Parse.count)
+
+
+-------------------------------------------------------------------------------
+-- CSSR Properties
+-------------------------------------------------------------------------------
+--
+-- Excisability:
+--   INPUTS: looping node, looping tree
+--   COLLECT all ancestors of the looping node from the looping tree, ordered by
+--           increasing depth (depth 0, or "root node," first)
+--   FOR each ancestor
+--     IF ancestor's distribution == looping node's distribution
+--     THEN
+--       the node is excisable: create loop in the tree
+--       ENDFOR (ie "break")
+--     ELSE do nothing
+--     ENDIF
+--   ENDFOR
 
 -------------------------------------------------------------------------------
 -- Lenses for Hist Trees
