@@ -93,17 +93,9 @@ isHomogeneous ll = foldr step True allPChilds
     step _  False = False
     step pc _     = Prob.matches ll pc
 
-excisable :: LLeaf -> LoopingTree -> Maybe LLeaf
-excisable ll (LoopingTree _ rt) = undefined
-
-getAncestors :: LLeaf -> [LLeaf]
-getAncestors ll = go (Just ll) []
-  where
-    go :: Maybe LLeaf -> [LLeaf] -> [LLeaf]
-    go  Nothing ancestors = reverse ancestors
-    go (Just w) ancestors = go (parent w) (w:ancestors)
-
--- Excisability:
+-- | === Excisability
+--
+-- Psuedocode from paper:
 --   INPUTS: looping node, looping tree
 --   COLLECT all ancestors of the looping node from the looping tree, ordered by
 --           increasing depth (depth 0, or "root node," first)
@@ -114,6 +106,22 @@ getAncestors ll = go (Just ll) []
 --       ENDFOR (ie "break")
 --     ELSE do nothing
 --     ENDIF
+excisable :: LLeaf -> Maybe LLeaf
+excisable ll = go (getAncestors ll)
+  where
+    go :: [LLeaf] -> Maybe LLeaf
+    go [] = Nothing
+    go (a:as)
+      | Prob.matches ll a = Just a
+      | otherwise = go as
+
+-- | returns ancestors in order of how they should be processed
+getAncestors :: LLeaf -> [LLeaf]
+getAncestors ll = go (Just ll) []
+  where
+    go :: Maybe LLeaf -> [LLeaf] -> [LLeaf]
+    go  Nothing ancestors = ancestors
+    go (Just w) ancestors = go (parent w) (w:ancestors)
 
 --  while (activeQueue.nonEmpty) {
 --    val active:MLLeaf = activeQueue.remove(0)
