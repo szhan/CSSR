@@ -1,4 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
 module Data.Looping.Tree where
 
 import Data.STRef
@@ -36,7 +35,28 @@ data LLeaf = LLeaf
   , histories :: HashSet HLeaf
   , frequency :: Vector Integer
   , children  :: HashMap Event LLeaf
+  , parent    :: Maybe LLeaf
   }
+
+data LoopingTree = LoopingTree
+  { _terminals :: HashSet LLeaf
+  , _root :: LLeaf
+  }
+
+instance Eq LLeaf where
+  (LLeaf l0 h0 f0 c0 _) == (LLeaf l1 h1 f1 c1 _) =
+    l0 == l1 && h0 == h1 && f0 == f1 && c0 == c1
+
+instance Show LLeaf where
+  show (LLeaf l h f c _) = "LLeaf{"++bod++"}"
+    where
+      bod :: String
+      bod = intercalate ", "
+        [ "isLoop: " ++ show l
+        , "histories: " ++ show h
+        , "frequency: " ++ show f
+        , "children: " ++ show c]
+
 
 instance Probabilistic LLeaf where
   frequency = Data.Looping.Tree.frequency
@@ -73,13 +93,31 @@ isHomogeneous ll = foldr step True allPChilds
     step _  False = False
     step pc _     = Prob.matches ll pc
 
---     val ltree = new LoopingTree(tree)
---     val activeQueue = ListBuffer[MLLeaf](ltree.root)
---     val findAlternative = LoopingTree.findAlt(ltree)(_)
---
---     while (activeQueue.nonEmpty) {
---       val active:MLLeaf = activeQueue.remove(0)
---       val isHomogeneous:Boolean = active.histories.forall{ LoopingTree.nextHomogeneous(tree) }
+excisable :: LLeaf -> LoopingTree -> Maybe LLeaf
+excisable ll (LoopingTree _ rt) = undefined
+
+getAncestors :: LLeaf -> [LLeaf]
+getAncestors ll = go (Just ll) []
+  where
+    go :: Maybe LLeaf -> [LLeaf] -> [LLeaf]
+    go  Nothing ancestors = reverse ancestors
+    go (Just w) ancestors = go (parent w) (w:ancestors)
+
+-- Excisability:
+--   INPUTS: looping node, looping tree
+--   COLLECT all ancestors of the looping node from the looping tree, ordered by
+--           increasing depth (depth 0, or "root node," first)
+--   FOR each ancestor
+--     IF ancestor's distribution == looping node's distribution
+--     THEN
+--       the node is excisable: create loop in the tree
+--       ENDFOR (ie "break")
+--     ELSE do nothing
+--     ENDIF
+
+--  while (activeQueue.nonEmpty) {
+--    val active:MLLeaf = activeQueue.remove(0)
+--    val isHomogeneous:Boolean = active.histories.forall{ LoopingTree.nextHomogeneous(tree) }
 --
 --       if (isHomogeneous) {
 --         debug("we've hit our base case")
