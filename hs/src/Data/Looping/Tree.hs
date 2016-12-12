@@ -61,6 +61,9 @@ instance Show LLeaf where
 instance Probabilistic LLeaf where
   frequency = Data.Looping.Tree.frequency
 
+instance Hashable LLeaf where
+  hashWithSalt salt (LLeaf il hs fq _ _) = hashWithSalt salt (il, hs, fq)
+
 mkRoot :: Alphabet -> ST s (MLLeaf s)
 mkRoot (Alphabet vec _) =
   MLLeaf <$> newSTRef False <*> H.new <*> MV.replicate (V.length vec) 0 <*> H.new
@@ -81,7 +84,66 @@ grow (HistTree _ a hRoot) = do
         isHomogeneous :: Bool
         isHomogeneous = undefined
 
+-- | === isEdge
+-- Psuedocode from paper:
+--   INPUTS: looping node, looping tree
+--   COLLECT all terminal nodes that are not ancestors
+--   IF exists terminal nodes with identical distributions
+--   THEN
+--     mark looping node as an edge set
+--     mark found terminals as an edge set
+--     // We will merge edgesets in Phase III.
+--   ENDIF
+--
+type EdgeGroup = (Vector Double, Vector Integer, HashSet LLeaf)
 
+groupEdges :: LoopingTree -> HashSet EdgeGroup
+groupEdges (LoopingTree terms _) = HS.foldr part HS.empty terms
+  where
+    part :: LLeaf -> HashSet EdgeGroup -> HashSet EdgeGroup
+    part term groups =
+      case foundEdge of
+        Nothing -> HS.insert (termDist, termFreq, HS.singleton term) groups
+        Just g  -> updateGroup g groups
+
+      where
+        termDist :: Vector Double
+        termDist = Prob.distribution term
+
+        termFreq :: Vector Integer
+        termFreq = Prob.frequency term
+
+        updateGroup :: EdgeGroup -> HashSet EdgeGroup -> HashSet EdgeGroup
+        updateGroup g@(d, f, ts) groups =
+          HS.insert (Prob.freqToDist summed, summed, HS.insert term ts) (HS.delete g groups)
+          where
+            summed :: Vector Integer
+            summed = Prob.addFrequencies termFreq f
+
+        foundEdge :: Maybe EdgeGroup
+        foundEdge = HS.foldr matchEdges Nothing groups
+
+        matchEdges :: EdgeGroup -> Maybe EdgeGroup -> Maybe EdgeGroup
+        matchEdges _  g@(Just _) = g
+        matchEdges g@(d, _, _) Nothing =
+          if Prob.matchesDist term d
+          then Just g
+          else Nothing
+
+
+-- | === Homogeneity
+-- Psuedocode from paper:
+--   INPUTS: looping node, parse tree
+--   COLLECT all next-step histories from looping node in parse tree
+--   FOR each history in next-step histories
+--     FOR each child in history's children
+--       IF child's distribution ~/=  node's distribution
+--       THEN RETURN false
+--       ENDIF
+--     ENDFOR
+--   ENDFOR
+--   RETURN TRUE
+--
 isHomogeneous :: LLeaf -> Bool
 isHomogeneous ll = foldr step True allPChilds
   where
@@ -94,7 +156,6 @@ isHomogeneous ll = foldr step True allPChilds
     step pc _     = Prob.matches ll pc
 
 -- | === Excisability
---
 -- Psuedocode from paper:
 --   INPUTS: looping node, looping tree
 --   COLLECT all ancestors of the looping node from the looping tree, ordered by
@@ -106,6 +167,8 @@ isHomogeneous ll = foldr step True allPChilds
 --       ENDFOR (ie "break")
 --     ELSE do nothing
 --     ENDIF
+--   ENDFOR
+--
 excisable :: LLeaf -> Maybe LLeaf
 excisable ll = go (getAncestors ll)
   where
