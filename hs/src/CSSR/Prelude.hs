@@ -9,6 +9,7 @@ module CSSR.Prelude
   , module Control.Monad.ST
   , module Debug.Trace
   , module Data.List
+  , module Data.Maybe
   , module Control.Exception
   , module Data.Hashable
 
@@ -23,6 +24,7 @@ import Control.Monad.ST
 import Lens.Micro.Platform
 import Data.Monoid
 import Data.List
+import Data.Maybe
 import CSSR.TypeAliases
 import Debug.Trace
 import Control.Exception

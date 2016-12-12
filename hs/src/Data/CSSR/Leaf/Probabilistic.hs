@@ -7,13 +7,7 @@ class Probabilistic leaf where
   frequency :: leaf -> Vector Integer
 
   distribution :: leaf -> Vector Double
-  distribution leaf = V.map (\f -> fromIntegral f / total) fs
-    where
-      total :: Double
-      total = (fromIntegral . sum) fs
-
-      fs :: Vector Integer
-      fs = frequency leaf
+  distribution = freqToDist . frequency
 
   rounded :: leaf -> Vector Float
   rounded leaf = V.map (shorten 2) (distribution leaf)
@@ -22,10 +16,21 @@ class Probabilistic leaf where
       shorten n f = (fromInteger $ round $ f * (10^n)) / (10.0^^n)
 
 matches :: (Probabilistic a, Probabilistic b) => a -> b -> Bool
-matches a b = matches' (distribution a) (distribution b)
-  where
-    matches' :: Vector Double -> Vector Double -> Bool
-    matches' = undefined
+matches a b = matchesDists (distribution a) (distribution b)
 
+matchesDist :: Probabilistic a => a -> Vector Double -> Bool
+matchesDist a = matchesDists (distribution a)
+
+matchesDists :: Vector Double -> Vector Double -> Bool
+matchesDists = undefined
+
+addFrequencies :: Vector Integer -> Vector Integer -> Vector Integer
+addFrequencies = V.zipWith (+)
+
+freqToDist :: Vector Integer -> Vector Double
+freqToDist fs = V.map (\f -> fromIntegral f / total) fs
+  where
+    total :: Double
+    total = (fromIntegral . sum) fs
 
 
