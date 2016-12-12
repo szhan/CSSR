@@ -84,6 +84,40 @@ grow (HistTree _ a hRoot) = do
         isHomogeneous :: Bool
         isHomogeneous = undefined
 
+--  while (activeQueue.nonEmpty) {
+--    val active:MLLeaf = activeQueue.remove(0)
+--    val isHomogeneous:Boolean = active.histories.forall{ LoopingTree.nextHomogeneous(tree) }
+--
+--    if (isHomogeneous) {
+--      debug("we've hit our base case")
+--    } else {
+--
+--      val nextChildren:Map[Char, LoopingTree.Node] = active.histories
+--        .flatMap { _.children }
+--        .groupBy{ _.observation }
+--        .map { case (c, pleaves) => {
+--          val lleaf:MLLeaf = new MLLeaf(c + active.observed, pleaves, Option(active))
+--          val alternative:Option[LoopingTree.AltNode] = findAlternative(lleaf)
+--          c -> alternative.toRight(lleaf)
+--        } }
+--
+--      active.children ++= nextChildren
+--      // Now that active has children, it cannot be considered a terminal node. Thus, we elide the active node:
+--      ltree.terminals = ltree.terminals ++ LoopingTree.leafChildren(nextChildren).toSet[MLLeaf] - active
+--      // FIXME: how do edge-sets handle the removal of an active node? Also, are they considered terminal?
+--      activeQueue ++= LoopingTree.leafChildren(nextChildren)
+--    }
+--  }
+--
+--  ltree
+--   }
+
+
+
+
+-------------------------------------------------------------------------------
+-- Predicates for the consturction of a looping tree
+
 -- | === isEdge
 -- Psuedocode from paper:
 --   INPUTS: looping node, looping tree
@@ -186,30 +220,4 @@ getAncestors ll = go (Just ll) []
     go  Nothing ancestors = ancestors
     go (Just w) ancestors = go (parent w) (w:ancestors)
 
---  while (activeQueue.nonEmpty) {
---    val active:MLLeaf = activeQueue.remove(0)
---    val isHomogeneous:Boolean = active.histories.forall{ LoopingTree.nextHomogeneous(tree) }
---
---       if (isHomogeneous) {
---         debug("we've hit our base case")
---       } else {
---
---         val nextChildren:Map[Char, LoopingTree.Node] = active.histories
---           .flatMap { _.children }
---           .groupBy{ _.observation }
---           .map { case (c, pleaves) => {
---             val lleaf:MLLeaf = new MLLeaf(c + active.observed, pleaves, Option(active))
---             val alternative:Option[LoopingTree.AltNode] = findAlternative(lleaf)
---             c -> alternative.toRight(lleaf)
---           } }
---
---         active.children ++= nextChildren
---         // Now that active has children, it cannot be considered a terminal node. Thus, we elide the active node:
---         ltree.terminals = ltree.terminals ++ LoopingTree.leafChildren(nextChildren).toSet[MLLeaf] - active
---         // FIXME: how do edge-sets handle the removal of an active node? Also, are they considered terminal?
---         activeQueue ++= LoopingTree.leafChildren(nextChildren)
---       }
---     }
---
---     ltree
---   }
+
