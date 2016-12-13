@@ -1,6 +1,7 @@
 module Data.CSSR.Leaf.Probabilistic where
 
 import CSSR.Prelude
+import Data.Statistics.KologorovSmirnov
 import qualified Data.Vector as V
 
 class Probabilistic leaf where
@@ -15,14 +16,18 @@ class Probabilistic leaf where
       shorten :: Int -> Double -> Float
       shorten n f = (fromInteger $ round $ f * (10^n)) / (10.0^^n)
 
-matches :: (Probabilistic a, Probabilistic b) => a -> b -> Bool
-matches a b = matchesDists (distribution a) (distribution b)
+matches :: (Probabilistic a, Probabilistic b) => a -> b -> Double -> Bool
+matches a b = matchesDists (probabilisticToTuple a) (probabilisticToTuple b)
 
-matchesDist :: Probabilistic a => a -> Vector Double -> Bool
-matchesDist a = matchesDists (distribution a)
 
-matchesDists :: Vector Double -> Vector Double -> Bool
-matchesDists = undefined
+probabilisticToTuple :: Probabilistic a => a -> (Integer, Vector Double)
+probabilisticToTuple a = (sum $ frequency a, distribution a)
+
+matchesDists :: (Integer, Vector Double) -> (Integer, Vector Double) -> Double -> Bool
+matchesDists = kstwoTest
+
+matchesDists_ :: Vector Integer -> Vector Integer -> Double -> Bool
+matchesDists_ = kstwoTest_
 
 addFrequencies :: Vector Integer -> Vector Integer -> Vector Integer
 addFrequencies = V.zipWith (+)

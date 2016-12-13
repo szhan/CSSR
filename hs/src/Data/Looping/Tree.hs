@@ -131,8 +131,8 @@ grow (HistTree _ a hRoot) = do
 --
 type EdgeGroup = (Vector Double, Vector Integer, HashSet LLeaf)
 
-groupEdges :: LoopingTree -> HashSet EdgeGroup
-groupEdges (LoopingTree terms _) = HS.foldr part HS.empty terms
+groupEdges :: Double -> LoopingTree -> HashSet EdgeGroup
+groupEdges sig (LoopingTree terms _) = HS.foldr part HS.empty terms
   where
     part :: LLeaf -> HashSet EdgeGroup -> HashSet EdgeGroup
     part term groups =
@@ -159,8 +159,8 @@ groupEdges (LoopingTree terms _) = HS.foldr part HS.empty terms
 
         matchEdges :: EdgeGroup -> Maybe EdgeGroup -> Maybe EdgeGroup
         matchEdges _  g@(Just _) = g
-        matchEdges g@(d, _, _) Nothing =
-          if Prob.matchesDist term d
+        matchEdges g@(_, f, _) Nothing =
+          if Prob.matchesDists_ (frequency term) f sig
           then Just g
           else Nothing
 
@@ -178,8 +178,8 @@ groupEdges (LoopingTree terms _) = HS.foldr part HS.empty terms
 --   ENDFOR
 --   RETURN TRUE
 --
-isHomogeneous :: LLeaf -> Bool
-isHomogeneous ll = foldr step True allPChilds
+isHomogeneous :: Double -> LLeaf -> Bool
+isHomogeneous sig ll = foldr step True allPChilds
   where
     allPChilds :: HashSet HLeaf
     allPChilds = HS.fromList $
@@ -187,7 +187,7 @@ isHomogeneous ll = foldr step True allPChilds
 
     step :: HLeaf -> Bool -> Bool
     step _  False = False
-    step pc _     = Prob.matches ll pc
+    step pc _     = Prob.matches ll pc sig
 
 -- | === Excisability
 -- Psuedocode from paper:
@@ -203,13 +203,13 @@ isHomogeneous ll = foldr step True allPChilds
 --     ENDIF
 --   ENDFOR
 --
-excisable :: LLeaf -> Maybe LLeaf
-excisable ll = go (getAncestors ll)
+excisable :: Double -> LLeaf -> Maybe LLeaf
+excisable sig ll = go (getAncestors ll)
   where
     go :: [LLeaf] -> Maybe LLeaf
     go [] = Nothing
     go (a:as)
-      | Prob.matches ll a = Just a
+      | Prob.matches ll a sig = Just a
       | otherwise = go as
 
 -- | returns ancestors in order of how they should be processed

@@ -25,6 +25,23 @@ kstwoTest :: CountsAndDist -> CountsAndDist
   -> Bool -- ^whether or not the pvalue is greater than the significance
 kstwoTest a b sig = kstwo a b > sig
 
+kstwoTest_ :: Vector Integer -> Vector Integer
+  -> Double -- ^the siginificance level of the test
+  -> Bool -- ^whether or not the pvalue is greater than the significance
+kstwoTest_ a b sig = kstwo (toTuple a) (toTuple b) > sig
+  where
+    toTuple :: Vector Integer -> CountsAndDist
+    toTuple a = (sum a, freqToDist a)
+
+    freqToDist :: Vector Integer -> Vector Double
+    freqToDist fs = V.map (\f -> fromIntegral f / total) fs
+      where
+        total :: Double
+        total = (fromIntegral . sum) fs
+
+
+
+
 ---------------------------------------------------------------------------------
 -- | Kolmogorov-Smirnov probability (D > observed)
 --
