@@ -1,7 +1,9 @@
 module Data.Statistics.KologorovSmirnov where
 
+import CSSR.Prelude
 import Control.Exception
 import Data.Function
+import qualified Data.Vector as V
 
 ---------------------------------------------------------------------------------
 -- | Kolmogorov-Smirnov Hypothesis Test:
@@ -14,14 +16,14 @@ import Data.Function
 --
 -- TODO: Look up tables for control values and verification
 ---------------------------------------------------------------------------------
-kstwoTest ::
-  [Double] -- ^the first sample's probability distribution
-  -> Double -- ^the number of observations for data1
-  -> [Double] -- ^the second sample's probability distribution
-  -> Double -- ^the number of observations for data2
+
+-- | the number of observations and the sample's probability distribution
+type CountsAndDist = (Integer, Vector Double)
+
+kstwoTest :: CountsAndDist -> CountsAndDist
   -> Double -- ^the siginificance level of the test
   -> Bool -- ^whether or not the pvalue is greater than the significance
-kstwoTest data1 n1 data2 n2 a = kstwo data1 n1 data2 n2 > a
+kstwoTest a b sig = kstwo a b > sig
 
 ---------------------------------------------------------------------------------
 -- | Kolmogorov-Smirnov probability (D > observed)
@@ -52,38 +54,35 @@ kstwoTest data1 n1 data2 n2 a = kstwo data1 n1 data2 n2 > a
 --
 ---------------------------------------------------------------------------------
 
-kstwo ::
-  [Double] -- ^the first sample's probability distribution
-  -> Double -- ^the number of observations for data1
-  -> [Double]  -- ^the second sample's probability distribution
-  -> Double -- ^the number of observations for data2
+kstwo :: CountsAndDist -> CountsAndDist
   -> Double -- ^p-value, Probability(D > observed)
-kstwo data1 n1 data2 n2 = probks $ ksstatistic data1 data2 * (en + 0.12 + (0.11 / en))
+kstwo (n1', data1) (n2', data2) = probks $
+  ksstatistic data1 data2 * (en + 0.12 + (0.11 / en))
   where
-    en :: Double
-    en = sqrt effectSize
+    -- the square root of two-sample effective size
+    en, n1, n2 :: Double
+    en = sqrt $ (n1 * n2) / (n1 + n2)
 
-    -- the two-sample effective size
-    effectSize :: Double
-    effectSize = (n1 * n2) / (n1 + n2)
+    n1 = fromIntegral n1'
+    n2 = fromIntegral n2'
 
 ---------------------------------------------------------------------------------
 -- the Kolmogorov-Smirnov statistic
 ---------------------------------------------------------------------------------
 ksstatistic
-  :: [Double] -- ^sample one's pdf, used to calculate the first ecdf
-  -> [Double] -- ^sample two's pdf, used to calculate the second ecdf
+  :: Vector Double -- ^sample one's pdf, used to calculate the first ecdf
+  -> Vector Double -- ^sample two's pdf, used to calculate the second ecdf
   -> Double   -- ^the KS statistic: the supremum of the tow calculated ecdfs
 ksstatistic data1 data2 =
   assert (length data1 == length data2) $
-  foldr1 max $ map abs $ getAll data1 data2
+  foldr1 max $ fmap abs $ getAll data1 data2
   where
     -- | calc empirical cumulative distributions. Should have ascending order.
-    ecdf :: [Double] -> [Double]
-    ecdf = scanr (+) 0
+    ecdf :: Vector Double -> Vector Double
+    ecdf = V.scanr (+) 0
 
-    getAll :: [Double] -> [Double] -> [Double]
-    getAll d1 d2 = zipWith subtract (ecdf d1) (ecdf d2)
+    getAll :: Vector Double -> Vector Double -> Vector Double
+    getAll d1 d2 = V.zipWith subtract (ecdf d1) (ecdf d2)
 
 ---------------------------------------------------------------------------------
 -- | Kolmogorov-Smirnov probability function, Q_{ks}
@@ -94,19 +93,22 @@ ksstatistic data1 data2 =
 -- across the natural numbers.
 ---------------------------------------------------------------------------------
 probks :: Double -> Double -- ^probability or 1.0 if @probks@ fails to converge.
-probks alam {-alam stands for "a lambda", I believe-}= go [1..100] 2 0 0
+probks alam {-alam stands for "a lambda", I believe-}= go (V.fromList [1..100]) 2 0 0
   where
     a2, eps1, eps2 :: Double
     a2 = -2 * (alam ** 2)
     eps1 = 0.001
     eps2 = 1.0e-8
 
-    go :: [Double] -> Double -> Double -> Double -> Double
-    go    []  fac oldsum termBF = 1  -- Get here only by failing to converge.
-    go (j:js) fac oldsum termBF
+    go :: Vector Double -> Double -> Double -> Double -> Double
+    go js' fac oldsum termBF
+      | V.null js' = 1         -- ^ Get here only by failing to converge.
       | (aterm <= eps1 * termBF) || (aterm  <= eps2 * newsum) = newsum
       | otherwise = go js (-1 * fac) newsum aterm
       where
+        j = V.head js'
+        js = V.tail js'
+
         term :: Double
         term = fac * exp (a2 * j * j)
 
