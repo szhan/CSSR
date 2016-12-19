@@ -7,6 +7,7 @@ module CSSR.Algorithm where
 
 import qualified Data.Vector as V
 import qualified Data.Parse.MTree as M
+import Data.Parse.Tree
 import Data.Hist.Tree
 
 
@@ -19,11 +20,14 @@ import Data.Hist.Tree
 main :: FilePath -> IO ()
 main filepath = do
   contents <- readFile filepath
-  let histTree = initialization contents
+  let histTree = initialization 1 contents
   return ()
 
-initialization :: String -> HistTree
-initialization = uncurry convert . M.buildTree 4 . V.fromList
+initialization :: Int -> String -> HistTree
+initialization depth s = (convert parseTree $ M.getAlphabet parseTree)
+  where
+    parseTree :: ParseTree
+    parseTree = M.buildTree depth . V.fromList $ s
 
 -------------------------------------------------------------------------------
 -- | == Phase II: "Growing a Looping Tree" algorithm

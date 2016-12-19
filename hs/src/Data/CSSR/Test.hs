@@ -1,34 +1,34 @@
 module Data.CSSR.Test where
 
+import Control.Arrow ((&&&))
 import Data.Vector (Vector)
-import Data.Function (on)
 import Data.Statistics.KologorovSmirnov
 
 
 class Probabilistic a where
-  frequency :: Vector Integer
+  frequency :: a -> Vector Integer
 
-  totalCounts :: Integer
-  totalCounts = foldr (+) frequency
+  totalCounts :: a -> Integer
+  totalCounts a = foldr (+) 0 $ frequency a
 
-  distribution :: Vector Double
-  distribution = map (// totalCounts) frequency
+  totalCounts_ :: a -> Double
+  totalCounts_ = fromIntegral . totalCounts
+
+  distribution :: a -> Vector Double
+  distribution p = fmap ((/ total) . fromIntegral) . frequency $ p
     where
-      (//) :: Integer -> Integer -> Double
-      a // b = (/) `on` fromIntegral
+      total :: Double
+      total = totalCounts_ p
 
 test :: Probabilistic inst => inst -> inst -> Double -> Bool
 test state testCase sig = nullHypothesis state testCase >= sig
 
-
 nullHypothesis :: (Probabilistic empirical, Probabilistic test)
                => empirical -> test -> Double
-nullHypothesis ss val = kstwo state_dist state_total test_dist testCase_total
+nullHypothesis ss val = kstwo (countsAndDist ss) (countsAndDist val)
   where
-    state_dist = distribution state
-    state_total = totalCounts state
-    test_dist = distribution testCase
-    test_total = totalCounts testCase
+    countsAndDist :: Probabilistic p => p -> (Integer, Vector Double)
+    countsAndDist = totalCounts &&& distribution
 
 
 
