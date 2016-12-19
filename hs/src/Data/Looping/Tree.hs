@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric #-}
 module Data.Looping.Tree where
 
 import Data.STRef
@@ -31,12 +32,16 @@ data MLLeaf s = MLLeaf
   }
 
 data LLeaf = LLeaf
-  { isLoop    :: Bool
-  , histories :: HashSet HLeaf
-  , frequency :: Vector Integer
+  { body      :: LLeafBody
   , children  :: HashMap Event LLeaf
   , parent    :: Maybe LLeaf
   }
+
+data LLeafBody = LLeafBody
+  { isLoop    :: Bool
+  , histories :: HashSet HLeaf
+  , frequency :: Vector Integer
+  } deriving (Show, Eq, Generic)
 
 data LoopingTree = LoopingTree
   { _terminals :: HashSet LLeaf
@@ -44,30 +49,21 @@ data LoopingTree = LoopingTree
   }
 
 instance Eq LLeaf where
-  (LLeaf l0 h0 f0 c0 _) == (LLeaf l1 h1 f1 c1 _) =
-    l0 == l1 && h0 == h1 && f0 == f1 && c0 == c1
+  (LLeaf b0 c0 _) == (LLeaf b1 c1 _) = b0 == b1 && c0 == c1
 
 instance Show LLeaf where
-  show (LLeaf l h f c _) = "LLeaf{"++bod++"}"
-    where
-      bod :: String
-      bod = intercalate ", "
-        [ "isLoop: " ++ show l
-        , "histories: " ++ show h
-        , "frequency: " ++ show f
-        , "children: " ++ show c]
-
+  show (LLeaf b c _) = "LLeaf{"++ show b ++ ", " ++ show c ++"}"
 
 instance Probabilistic LLeaf where
-  frequency = Data.Looping.Tree.frequency
+  frequency = Data.Looping.Tree.frequency . body
 
+instance Hashable LLeafBody
 instance Hashable LLeaf where
-  hashWithSalt salt (LLeaf il hs fq _ _) = hashWithSalt salt (il, hs, fq)
+  hashWithSalt salt (LLeaf b _ _) = hashWithSalt salt b
 
 mkRoot :: Alphabet -> ST s (MLLeaf s)
 mkRoot (Alphabet vec _) =
   MLLeaf <$> newSTRef False <*> H.new <*> MV.replicate (V.length vec) 0 <*> H.new
-
 
 grow :: HistTree -> ST s (MLLeaf s)
 grow (HistTree _ a hRoot) = do
@@ -160,7 +156,7 @@ groupEdges sig (LoopingTree terms _) = HS.foldr part HS.empty terms
         matchEdges :: EdgeGroup -> Maybe EdgeGroup -> Maybe EdgeGroup
         matchEdges _  g@(Just _) = g
         matchEdges g@(_, f, _) Nothing =
-          if Prob.matchesDists_ (frequency term) f sig
+          if Prob.matchesDists_ (Prob.frequency term) f sig
           then Just g
           else Nothing
 
@@ -183,7 +179,7 @@ isHomogeneous sig ll = foldr step True allPChilds
   where
     allPChilds :: HashSet HLeaf
     allPChilds = HS.fromList $
-      HS.toList (histories ll) >>= HM.elems . view Hist.children
+      HS.toList (histories . body $ ll) >>= HM.elems . view Hist.children
 
     step :: HLeaf -> Bool -> Bool
     step _  False = False
