@@ -45,15 +45,39 @@ data MLoopingTree s = MLoopingTree
   , _root :: MLLeaf s
   }
 
+-- freezeNoParents :: MLLeaf s -> ST s L.LLeaf
+-- freezeNoParents ml = do
+--   il <- readSTRef . _isLoop $ ml
+--   hs <- freezeHistories ml
+--   f <- V.freeze . _frequency $ ml
+--   cs <- (H.toList . _children $ ml) >>= freezeDown
+--   return $ L.LLeaf (L.LLeafBody il hs f) cs Nothing
+--
+--   where
+--     freezeHistories :: MLLeaf s -> ST s (HashSet Hist.HLeaf)
+--     freezeHistories = fmap (HS.fromList . fmap fst) . H.toList . _histories
+--
+--     freezeDown :: [(Event, MLLeaf s)] -> ST s (HashMap Event L.LLeaf)
+--     freezeDown = fmap HM.fromList . traverse (\(e, cml) -> do
+--       c <- freezeNoParents cml
+--       return (e, c))
+
 freeze :: MLLeaf s -> ST s L.LLeaf
 freeze ml = do
   il <- readSTRef . _isLoop $ ml
   hs <- freezeHistories ml
   f <- V.freeze . _frequency $ ml
   cs <- (H.toList . _children $ ml) >>= freezeDown
-  return $ L.LLeaf (L.LLeafBody il hs f) cs Nothing
+  let cur = L.LLeaf (L.LLeafBody il hs f) cs Nothing
+  return $ withChilds cur (HM.map (withParent (Just cur)) cs)
 
   where
+    withChilds :: L.LLeaf -> HashMap Event L.LLeaf -> L.LLeaf
+    withChilds (L.LLeaf bod _ p) cs = L.LLeaf bod cs p
+
+    withParent :: Maybe L.LLeaf -> L.LLeaf -> L.LLeaf
+    withParent p (L.LLeaf bod cs _) = L.LLeaf bod cs p
+
     freezeHistories :: MLLeaf s -> ST s (HashSet Hist.HLeaf)
     freezeHistories = fmap (HS.fromList . fmap fst) . H.toList . _histories
 
@@ -62,6 +86,7 @@ freeze ml = do
       c <- freeze cml
       return (e, c))
 
+
 thaw :: L.LLeaf -> ST s (MLLeaf s)
 thaw ll@(L.LLeaf lb cs p) = do
   il <- newSTRef (L.isLoop lb)
@@ -69,7 +94,9 @@ thaw ll@(L.LLeaf lb cs p) = do
   f <- V.thaw (L.frequency lb)
   cs <- thawDown (HM.toList . L.children $ ll)
   p <- newSTRef Nothing
-  return $ MLLeaf il hs f cs p
+  let cur = MLLeaf il hs f cs p
+  H.mapM_ (\(_, c) -> writeSTRef (_parent c) (Just cur)) cs
+  return cur
 
   where
     thawDown :: [(Event, L.LLeaf)] -> ST s (C.HashTable s Event (MLLeaf s))

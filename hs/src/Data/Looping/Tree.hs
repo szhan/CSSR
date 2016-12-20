@@ -23,7 +23,7 @@ import qualified Data.CSSR.Leaf.Probabilistic as Prob
 data LLeaf = LLeaf
   { body      :: LLeafBody
   , children  :: HashMap Event LLeaf
-  , parent    :: Maybe Bool -- LLeaf
+  , parent    :: Maybe LLeaf
   }
 
 data LLeafBody = LLeafBody
