@@ -3,6 +3,8 @@ module Data.CSSR.Leaf.Probabilistic where
 import CSSR.Prelude
 import Data.Statistics.KologorovSmirnov
 import qualified Data.Vector as V
+import qualified Data.Vector.Generic as MV
+import Control.Monad.Primitive
 
 class Probabilistic leaf where
   frequency :: leaf -> Vector Integer
@@ -18,7 +20,6 @@ class Probabilistic leaf where
 
 matches :: (Probabilistic a, Probabilistic b) => a -> b -> Double -> Bool
 matches a b = matchesDists (probabilisticToTuple a) (probabilisticToTuple b)
-
 
 probabilisticToTuple :: Probabilistic a => a -> (Integer, Vector Double)
 probabilisticToTuple a = (sum $ frequency a, distribution a)
@@ -37,5 +38,20 @@ freqToDist fs = V.map (\f -> fromIntegral f / total) fs
   where
     total :: Double
     total = (fromIntegral . sum) fs
+
+unsafeMatch :: PrimMonad m
+            => V.MVector (PrimState m) Integer -> Vector Integer -> Double -> m Bool
+unsafeMatch mvec vec sig = do
+  vec' <- MV.basicUnsafeFreeze mvec
+  return $ kstwoTest_ vec' vec sig
+
+
+unsafeMatch_ :: PrimMonad m
+            => V.MVector (PrimState m) Integer
+            -> V.MVector (PrimState m) Integer -> Double -> m Bool
+unsafeMatch_ mvec0 mvec1 sig = do
+  vec0 <- MV.basicUnsafeFreeze mvec0
+  vec1 <- MV.basicUnsafeFreeze mvec1
+  return $ kstwoTest_ vec0 vec1 sig
 
 

@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Data.Looping.Tree where
 
-import Data.STRef
 import qualified Data.HashSet as HS
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Vector as V
@@ -19,17 +19,6 @@ import qualified Data.Hist.Tree as Hist
 
 import Data.CSSR.Leaf.Probabilistic (Probabilistic)
 import qualified Data.CSSR.Leaf.Probabilistic as Prob
-
--------------------------------------------------------------------------------
--- Mutable Looping Tree ADTs
--------------------------------------------------------------------------------
-data MLLeaf s = MLLeaf
-  { _isLoop    :: STRef s Bool
-  -- | for lack of a mutable hash set implementation
-  , _histories :: C.HashTable s HLeaf Bool
-  , _frequency :: MVector s Integer
-  , _children :: C.HashTable s Event (MLLeaf s)
-  }
 
 data LLeaf = LLeaf
   { body      :: LLeafBody
@@ -61,53 +50,46 @@ instance Hashable LLeafBody
 instance Hashable LLeaf where
   hashWithSalt salt (LLeaf b _ _) = hashWithSalt salt b
 
-mkRoot :: Alphabet -> ST s (MLLeaf s)
-mkRoot (Alphabet vec _) =
-  MLLeaf <$> newSTRef False <*> H.new <*> MV.replicate (V.length vec) 0 <*> H.new
-
-grow :: HistTree -> ST s (MLLeaf s)
-grow (HistTree _ a hRoot) = do
-  rt <- mkRoot a
-  go [hRoot] rt
-  -- let findAlternative = LoopingTree.findAlt(ltree)(_)
-  return rt
-
-  where
-    go :: [HLeaf] -> MLLeaf s -> ST s ()
-    go             [] lf = return ()
-    go (active:queue) lf = go queue lf
-      where
-        isHomogeneous :: Bool
-        isHomogeneous = undefined
-
---  while (activeQueue.nonEmpty) {
---    val active:MLLeaf = activeQueue.remove(0)
---    val isHomogeneous:Boolean = active.histories.forall{ LoopingTree.nextHomogeneous(tree) }
+--path :: forall f. Applicative f
+--             => Vector Event
+--             -> (LLeafBody -> f LLeafBody)
+--             -> LLeaf
+--             -> f LLeaf
+--path events fn = go 0
+--  where
+--    go :: Int -> LLeaf -> f LLeaf
+--    go dpth (LLeaf body childs _) =
+--      if dpth == V.length events - 1
+--      then LLeaf <$> fn body <*> pure childs <*> Nothing
+--      else LLeaf <$> fn body <*> nextChilds <*> Nothing
 --
---    if (isHomogeneous) {
---      debug("we've hit our base case")
---    } else {
+--      where
+--        nextChilds :: f (HashMap Event LLeaf)
+--        nextChilds =
+--          case HM.lookup c childs of
+--            Just child -> HM.insert c <$> go (dpth + 1) child <*> pure childs
+--            Nothing -> HM.insert c <$> buildNew dpth <*> pure childs
+--          where
+--            c :: Event
+--            c = V.unsafeIndex events dpth
 --
---      val nextChildren:Map[Char, LoopingTree.Node] = active.histories
---        .flatMap { _.children }
---        .groupBy{ _.observation }
---        .map { case (c, pleaves) => {
---          val lleaf:MLLeaf = new MLLeaf(c + active.observed, pleaves, Option(active))
---          val alternative:Option[LoopingTree.AltNode] = findAlternative(lleaf)
---          c -> alternative.toRight(lleaf)
---        } }
 --
---      active.children ++= nextChildren
---      // Now that active has children, it cannot be considered a terminal node. Thus, we elide the active node:
---      ltree.terminals = ltree.terminals ++ LoopingTree.leafChildren(nextChildren).toSet[MLLeaf] - active
---      // FIXME: how do edge-sets handle the removal of an active node? Also, are they considered terminal?
---      activeQueue ++= LoopingTree.leafChildren(nextChildren)
---    }
---  }
+--        buildNew :: Int -> f LLeaf
+--        buildNew d
+--          | d == V.length events - 1 = LLeaf <$> mkBod events <*> pure mempty
+--          | otherwise = LLeaf <$> mkBod es <*> childs_
+--          where
+--            c :: Event
+--            c = V.unsafeIndex events (d + 1)
 --
---  ltree
---   }
-
+--            es :: Vector Event
+--            es = V.take (d + 1) events
+--
+--            mkBod :: Vector Event -> f LLeafBody
+--            mkBod es' = fn (LLeafBody es' 0 mempty)
+--
+--            childs_ :: f (HashMap Char LLeaf)
+--            childs_ = HM.singleton c <$> buildNew (d + 1)
 
 
 

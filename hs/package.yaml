@@ -33,6 +33,7 @@ dependencies:
   - microlens-platform
   - microlens
   - hashtables
+  - primitive
 
 library:
   source-dirs: src

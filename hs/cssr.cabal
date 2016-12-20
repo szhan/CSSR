@@ -40,6 +40,7 @@ library
     , microlens-platform
     , microlens
     , hashtables
+    , primitive
   exposed-modules:
       CSSR.Algorithm
       CSSR.Prelude
@@ -50,6 +51,7 @@ library
       Data.CSSR.Test
       Data.CSSR.Tree
       Data.Hist.Tree
+      Data.Looping.MTree
       Data.Looping.Tree
       Data.Parse.MTree
       Data.Parse.Tree
@@ -79,6 +81,7 @@ executable schema-prediction
     , microlens-platform
     , microlens
     , hashtables
+    , primitive
     , cssr
     , optparse-applicative
   other-modules:
@@ -107,6 +110,7 @@ test-suite spec
     , microlens-platform
     , microlens
     , hashtables
+    , primitive
     , cssr
     , hspec
     , QuickCheck
@@ -138,6 +142,7 @@ benchmark bench
     , microlens-platform
     , microlens
     , hashtables
+    , primitive
     , cssr
     , criterion
     , deepseq
