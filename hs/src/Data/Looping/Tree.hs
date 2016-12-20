@@ -23,7 +23,7 @@ import qualified Data.CSSR.Leaf.Probabilistic as Prob
 data LLeaf = LLeaf
   { body      :: LLeafBody
   , children  :: HashMap Event LLeaf
-  , parent    :: Maybe LLeaf
+  , parent    :: Maybe Bool -- LLeaf
   }
 
 data LLeafBody = LLeafBody
@@ -143,59 +143,59 @@ groupEdges sig (LoopingTree terms _) = HS.foldr part HS.empty terms
           else Nothing
 
 
--- | === Homogeneity
--- Psuedocode from paper:
---   INPUTS: looping node, parse tree
---   COLLECT all next-step histories from looping node in parse tree
---   FOR each history in next-step histories
---     FOR each child in history's children
---       IF child's distribution ~/=  node's distribution
---       THEN RETURN false
---       ENDIF
---     ENDFOR
---   ENDFOR
---   RETURN TRUE
+-- -- | === Homogeneity
+-- -- Psuedocode from paper:
+-- --   INPUTS: looping node, parse tree
+-- --   COLLECT all next-step histories from looping node in parse tree
+-- --   FOR each history in next-step histories
+-- --     FOR each child in history's children
+-- --       IF child's distribution ~/=  node's distribution
+-- --       THEN RETURN false
+-- --       ENDIF
+-- --     ENDFOR
+-- --   ENDFOR
+-- --   RETURN TRUE
 --
-isHomogeneous :: Double -> LLeaf -> Bool
-isHomogeneous sig ll = foldr step True allPChilds
-  where
-    allPChilds :: HashSet HLeaf
-    allPChilds = HS.fromList $
-      HS.toList (histories . body $ ll) >>= HM.elems . view Hist.children
-
-    step :: HLeaf -> Bool -> Bool
-    step _  False = False
-    step pc _     = Prob.matches ll pc sig
-
--- | === Excisability
--- Psuedocode from paper:
---   INPUTS: looping node, looping tree
---   COLLECT all ancestors of the looping node from the looping tree, ordered by
---           increasing depth (depth 0, or "root node," first)
---   FOR each ancestor
---     IF ancestor's distribution == looping node's distribution
---     THEN
---       the node is excisable: create loop in the tree
---       ENDFOR (ie "break")
---     ELSE do nothing
---     ENDIF
---   ENDFOR
+-- isHomogeneous :: Double -> LLeaf -> Bool
+-- isHomogeneous sig ll = foldr step True allPChilds
+--   where
+--     allPChilds :: HashSet HLeaf
+--     allPChilds = HS.fromList $
+--       HS.toList (histories . body $ ll) >>= HM.elems . view Hist.children
 --
-excisable :: Double -> LLeaf -> Maybe LLeaf
-excisable sig ll = go (getAncestors ll)
-  where
-    go :: [LLeaf] -> Maybe LLeaf
-    go [] = Nothing
-    go (a:as)
-      | Prob.matches ll a sig = Just a
-      | otherwise = go as
-
--- | returns ancestors in order of how they should be processed
-getAncestors :: LLeaf -> [LLeaf]
-getAncestors ll = go (Just ll) []
-  where
-    go :: Maybe LLeaf -> [LLeaf] -> [LLeaf]
-    go  Nothing ancestors = ancestors
-    go (Just w) ancestors = go (parent w) (w:ancestors)
+--     step :: HLeaf -> Bool -> Bool
+--     step _  False = False
+--     step pc _     = Prob.matches ll pc sig
+--
+-- -- | === Excisability
+-- -- Psuedocode from paper:
+-- --   INPUTS: looping node, looping tree
+-- --   COLLECT all ancestors of the looping node from the looping tree, ordered by
+-- --           increasing depth (depth 0, or "root node," first)
+-- --   FOR each ancestor
+-- --     IF ancestor's distribution == looping node's distribution
+-- --     THEN
+-- --       the node is excisable: create loop in the tree
+-- --       ENDFOR (ie "break")
+-- --     ELSE do nothing
+-- --     ENDIF
+-- --   ENDFOR
+-- --
+-- excisable :: Double -> LLeaf -> Maybe LLeaf
+-- excisable sig ll = go (getAncestors ll)
+--   where
+--     go :: [LLeaf] -> Maybe LLeaf
+--     go [] = Nothing
+--     go (a:as)
+--       | Prob.matches ll a sig = Just a
+--       | otherwise = go as
+--
+-- -- | returns ancestors in order of how they should be processed
+-- getAncestors :: LLeaf -> [LLeaf]
+-- getAncestors ll = go (Just ll) []
+--   where
+--     go :: Maybe LLeaf -> [LLeaf] -> [LLeaf]
+--     go  Nothing ancestors = ancestors
+--     go (Just w) ancestors = go (parent w) (w:ancestors)
 
 

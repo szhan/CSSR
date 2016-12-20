@@ -1,3 +1,4 @@
+{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 module Data.Looping.MTree where
@@ -21,6 +22,7 @@ import qualified Data.Hist.Tree as Hist
 
 import Data.CSSR.Leaf.Probabilistic (Probabilistic)
 import qualified Data.CSSR.Leaf.Probabilistic as Prob
+import qualified Data.Looping.Tree as L
 
 -------------------------------------------------------------------------------
 -- Mutable Looping Tree ADTs
@@ -34,19 +36,47 @@ data MLLeaf s = MLLeaf
   , _parent :: STRef s (Maybe (MLLeaf s))
   }
 
--- instance Eq (MLLeaf s) where
---   ml0 == ml1 = True
---
--- instance Hashable (MLLeaf s) where
---   hashWithSalt salt mll = 0
+instance Eq (MLLeaf s) where
+  ml0 == ml1 = (_parent ml0 == _parent ml1)
+    && (_isLoop ml0 == _isLoop ml1)
 
 data MLoopingTree s = MLoopingTree
   { _terminals :: HashSet (MLLeaf s)
   , _root :: MLLeaf s
   }
 
-makeLenses ''MLoopingTree
-makeLenses ''MLLeaf
+freeze :: MLLeaf s -> ST s L.LLeaf
+freeze ml = do
+  il <- readSTRef . _isLoop $ ml
+  hs <- freezeHistories ml
+  f <- V.freeze . _frequency $ ml
+  cs <- (H.toList . _children $ ml) >>= freezeDown
+  return $ L.LLeaf (L.LLeafBody il hs f) cs Nothing
+
+  where
+    freezeHistories :: MLLeaf s -> ST s (HashSet Hist.HLeaf)
+    freezeHistories = fmap (HS.fromList . fmap fst) . H.toList . _histories
+
+    freezeDown :: [(Event, MLLeaf s)] -> ST s (HashMap Event L.LLeaf)
+    freezeDown = fmap HM.fromList . traverse (\(e, cml) -> do
+      c <- freeze cml
+      return (e, c))
+
+thaw :: L.LLeaf -> ST s (MLLeaf s)
+thaw ll@(L.LLeaf lb cs p) = do
+  il <- newSTRef (L.isLoop lb)
+  hs <- H.fromList (fmap (,True) . HS.toList . L.histories $ lb)
+  f <- V.thaw (L.frequency lb)
+  cs <- thawDown (HM.toList . L.children $ ll)
+  p <- newSTRef Nothing
+  return $ MLLeaf il hs f cs p
+
+  where
+    thawDown :: [(Event, L.LLeaf)] -> ST s (C.HashTable s Event (MLLeaf s))
+    thawDown cs = H.fromList =<< traverse (\(e, cml) -> do
+      c <- thaw cml
+      return (e, c)) cs
+
 
 mkRoot :: Alphabet -> ST s (MLLeaf s)
 mkRoot (Alphabet vec _) = do
@@ -240,7 +270,7 @@ getAncestors ll = go (Just ll) []
     go :: Maybe (MLLeaf s) -> [MLLeaf s] -> ST s [MLLeaf s]
     go  Nothing ancestors = return ancestors
     go (Just w) ancestors = do
-      p <- readSTRef (view parent w)
+      p <- readSTRef (_parent w)
       go p (w:ancestors)
 
 
