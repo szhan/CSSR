@@ -8,7 +8,10 @@ import qualified Data.HashSet as HS
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Vector as V
 import Data.Vector (Vector, (!))
+import Data.Function (on)
 import Data.Vector.Mutable (MVector)
+import Data.Sequence (Seq)
+import qualified Data.Sequence as S
 import qualified Data.Vector.Mutable as MV
 import qualified Data.Vector.Generic as GV
 import qualified Data.HashTable.ST.Cuckoo as C
@@ -27,10 +30,12 @@ import qualified Data.Looping.Tree as L
 -------------------------------------------------------------------------------
 -- Mutable Looping Tree ADTs
 -------------------------------------------------------------------------------
+type HashTableSet s a = C.HashTable s a Bool
+
 data MLLeaf s = MLLeaf
   { _isLoop    :: STRef s Bool
   -- | for lack of a mutable hash set implementation
-  , _histories :: C.HashTable s HLeaf Bool
+  , _histories :: HashTableSet s HLeaf
   , _frequency :: MVector s Integer
   , _children :: C.HashTable s Event (MLLeaf s)
   , _parent :: STRef s (Maybe (MLLeaf s))
@@ -105,69 +110,116 @@ thaw ll@(L.LLeaf lb cs p) = do
       return (e, c)) cs
 
 
-mkRoot :: Alphabet -> ST s (MLLeaf s)
-mkRoot (Alphabet vec _) = do
+mkLeaf :: Maybe (MLLeaf s) -> [HLeaf] -> ST s (MLLeaf s)
+mkLeaf p' hs' = do
+  il <- newSTRef False
+  hs <- H.fromList $ fmap (, True) hs'
+  let v = foldr1 Prob.addFrequencies $ fmap (view (Hist.body . Hist.frequency)) hs'
+  mv <- GV.thaw v
+  cs <- H.new
+  p <- newSTRef p'
+  return $ MLLeaf il hs mv cs p
+
+mkRoot :: Alphabet -> HLeaf -> ST s (MLLeaf s)
+mkRoot (Alphabet vec _) hrt =
   MLLeaf
     <$> newSTRef False
-    <*> H.new
+    <*> H.fromList [(hrt, True)]
     <*> MV.replicate (V.length vec) 0
     <*> H.new
     <*> newSTRef Nothing
 
--- grow :: HistTree -> ST s (MLLeaf s)
--- grow (HistTree _ a hRoot) = do
---   rt <- mkRoot a
---   go [hRoot] rt
---   -- let findAlternative = LoopingTree.findAlt(ltree)(_)
---   return rt
---
---   where
---     go :: [HLeaf] -> MLLeaf s -> ST s ()
---     go             [] lf = return ()
---     go (active:queue) lf = go queue lf
---       where
---         isHomogeneous :: Bool
---         isHomogeneous = undefined
+walk :: MLLeaf s -> Vector Event -> ST s (Maybe (MLLeaf s))
+walk cur es
+  | null es = return $ Just cur
+  | otherwise = do
+    f <- H.lookup (_children cur) (V.head es)
+    case f of
+      Nothing -> return Nothing
+      Just nxt -> walk nxt (V.tail es)
 
---   while (activeQueue.nonEmpty) {
---     val active:MLLeaf = activeQueue.remove(0)
---     val isHomogeneous:Boolean =
---                active
---                  .histories
---                  .forall{ LoopingTree.nextHomogeneous(tree) }
+grow :: forall s . Double -> HistTree -> ST s (MLLeaf s)
+grow sig (HistTree _ a hRoot) = do
+  rt <- mkRoot a hRoot
+  ts <- newSTRef [rt]
+  go (S.singleton rt) ts
+  return rt
+
+  where
+    go :: Seq (MLLeaf s) -> STRef s [MLLeaf s] -> ST s ()
+    go queue termsRef
+      | S.null queue = return ()
+      | otherwise = do
+        terms <- readSTRef termsRef
+        isH <- isHomogeneous sig active
+        if isH
+        then go next termsRef
+        else do
+          cs' <- nextChilds
+          let cs = fmap snd cs'
+          -- FIXME: nextChilds to alternate nodes
+
+          mapM_ (uncurry $ H.insert (_children active)) cs'
+          writeSTRef termsRef (cs <> delete active terms)
+          go (next <> S.fromList cs) termsRef
+
+      where
+        next :: Seq (MLLeaf s)
+        (active', next) = S.splitAt 1 queue
+
+        active :: MLLeaf s
+        active = S.index active' 0
+
+        nextChilds :: ST s [(Event, MLLeaf s)]
+        nextChilds = do
+          hs <- (fmap.fmap) fst . H.toList . _histories $ active
+          traverse (\(e, _hs) -> (e,) <$> mkLeaf (Just active) _hs) $ groupHistory hs
+
+        groupHistory :: [HLeaf] -> [(Event, [HLeaf])]
+        groupHistory = groupBy (V.head . view (Hist.body . Hist.obs))
+
+          -- val alternative:Option[LoopingTree.AltNode] = findAlternative(lleaf)
+          -- c -> alternative.toRight(lleaf)
+
+--  while (activeQueue.nonEmpty) {
+--    val active:MLLeaf = activeQueue.remove(0)
+--    val isHomogeneous:Boolean =
+--               active
+--                 .histories
+--                 .forall{ LoopingTree.nextHomogeneous(tree) }
 --
---     if (isHomogeneous) {
---       debug("we've hit our base case")
---     } else {
+--    if (isHomogeneous) {
+--      debug("we've hit our base case")
+--    } else {
 --
---       val nextChildren:Map[Char, LoopingTree.Node] = active.histories
---         .flatMap { _.children }
---         .groupBy{ _.observation }
---         .map { case (c, pleaves) => {
---           val lleaf:MLLeaf = new MLLeaf
---                              ( c + active.observed
---                              , pleaves
---                              , Option(active)
---                              )
---           val alternative
---                       :Option[LoopingTree.AltNode] = findAlternative(lleaf)
---           c -> alternative.toRight(lleaf)
---         } }
+--      val nextChildren:Map[Char, LoopingTree.Node] = active.histories
+--        .flatMap { _.children }
+--        .groupBy{ _.observation }
+--        .map { case (c, pleaves) => {
+--          val lleaf:MLLeaf = new MLLeaf
+--                             ( c + active.observed
+--                             , pleaves
+--                             , Option(active)
+--                             )
+--          val alternative
+--                      :Option[LoopingTree.AltNode] = findAlternative(lleaf)
+--          c -> alternative.toRight(lleaf)
+--        } }
 --
---       active.children ++= nextChildren
---       // Now that active has children, it cannot be considered a
---       // terminal node. Thus, we elide the active node:
---       ltree.terminals =
---           ltree.terminals ++
---           LoopingTree.leafChildren(nextChildren).toSet[MLLeaf] - active
---       // FIXME: how do edge-sets handle the removal of an active node?
---       // Also, are they considered terminal?
---       activeQueue ++= LoopingTree.leafChildren(nextChildren)
---     }
---   }
+--      active.children ++= nextChildren
+--      // Now that active has children, it cannot be considered a
+--      // terminal node. Thus, we elide the active node:
+--      ltree.terminals =
+--          ltree.terminals ++
+--          LoopingTree.leafChildren(nextChildren).toSet[MLLeaf] - active
+--      // FIXME: how do edge-sets handle the removal of an active node?
+--      // Also, are they considered terminal?
+--      activeQueue ++= LoopingTree.leafChildren(nextChildren)
+--    }
+--  }
 --
---   ltree
--- }
+--  ltree
+--}
 
 
 
@@ -184,51 +236,51 @@ mkRoot (Alphabet vec _) = do
 --     mark found terminals as an edge set
 --     // We will merge edgesets in Phase III.
 --   ENDIF
-
-type EdgeGroup s = (Vector Integer, HashSet (MLLeaf s))
-
-groupEdges :: forall s . Double -> MLoopingTree s -> ST s (HashSet (EdgeGroup s))
-groupEdges sig (MLoopingTree terms _) = HS.foldr part (pure HS.empty) terms
-
-  where
-    --matchesDists_ :: Vector Integer -> Vector Integer -> Double -> Bool
-    --matchesDists_ = kstwoTest_
-
-    part :: MLLeaf s -> ST s (HashSet (EdgeGroup s)) -> ST s (HashSet (EdgeGroup s))
-    part term groups' = do
-      groups <- groups'
-      found <- foundEdge
-      case found of
-        Nothing -> (\t -> HS.insert (t, HS.singleton term) groups) <$> termFreq
-        Just g  -> updateGroup g groups
-
-      where
-        termFreq :: ST s (Vector Integer)
-        termFreq = GV.basicUnsafeFreeze (_frequency term)
-
-        updateGroup :: EdgeGroup s
-                    -> HashSet (EdgeGroup s)
-                    -> ST s (HashSet (EdgeGroup s))
-        updateGroup g@(f, ts) groups = do
-          summed <- summedST
-          return $ HS.insert (summed, HS.insert term ts) (HS.delete g groups)
-
-
-          where
-            summedST :: ST s (Vector Integer)
-            summedST = Prob.addFrequencies f <$> termFreq
-
-        foundEdge :: ST s (Maybe (EdgeGroup s))
-        foundEdge = do
-          groups <- groups'
-          foldrM matchEdges Nothing (HS.toList groups)
-
-        matchEdges :: EdgeGroup s
-                   -> Maybe (EdgeGroup s) -> ST s (Maybe (EdgeGroup s))
-        matchEdges _  g@(Just _) = return g
-        matchEdges g@(f, _) Nothing = do
-          matched <- Prob.unsafeMatch (_frequency term) f sig
-          return (if matched then Just g else Nothing)
+--
+--type EdgeGroup s = (Vector Integer, HashSet (MLLeaf s))
+--
+--groupEdges :: forall s . Double -> MLoopingTree s -> ST s (HashSet (EdgeGroup s))
+--groupEdges sig (MLoopingTree terms _) = HS.foldr part (pure HS.empty) terms
+--
+--  where
+--    --matchesDists_ :: Vector Integer -> Vector Integer -> Double -> Bool
+--    --matchesDists_ = kstwoTest_
+--
+--    part :: MLLeaf s -> ST s (HashSet (EdgeGroup s)) -> ST s (HashSet (EdgeGroup s))
+--    part term groups' = do
+--      groups <- groups'
+--      found <- foundEdge
+--      case found of
+--        Nothing -> (\t -> HS.insert (t, HS.singleton term) groups) <$> termFreq
+--        Just g  -> updateGroup g groups
+--
+--      where
+--        termFreq :: ST s (Vector Integer)
+--        termFreq = GV.basicUnsafeFreeze (_frequency term)
+--
+--        updateGroup :: EdgeGroup s
+--                    -> HashSet (EdgeGroup s)
+--                    -> ST s (HashSet (EdgeGroup s))
+--        updateGroup g@(f, ts) groups = do
+--          summed <- summedST
+--          return $ HS.insert (summed, HS.insert term ts) (HS.delete g groups)
+--
+--
+--          where
+--            summedST :: ST s (Vector Integer)
+--            summedST = Prob.addFrequencies f <$> termFreq
+--
+--        foundEdge :: ST s (Maybe (EdgeGroup s))
+--        foundEdge = do
+--          groups <- groups'
+--          foldrM matchEdges Nothing (HS.toList groups)
+--
+--        matchEdges :: EdgeGroup s
+--                   -> Maybe (EdgeGroup s) -> ST s (Maybe (EdgeGroup s))
+--        matchEdges _  g@(Just _) = return g
+--        matchEdges g@(f, _) Nothing = do
+--          matched <- Prob.unsafeMatch (_frequency term) f sig
+--          return (if matched then Just g else Nothing)
 
 
 -- | === Homogeneity
