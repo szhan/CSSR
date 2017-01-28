@@ -1,0 +1,3 @@
+[submodule "test-machines"]
+	path = test-machines
+	url = git@github.com:stites/test-machines.git
