@@ -4,23 +4,25 @@
 
 \section{Introduction}
 
-[[Real introduction will need to motivate the class of models being used.  Do
-so from two angles: first, simply as stochastic models which generalize Markov
+Real introduction will need to motivate the class of models being used. Do so
+from two angles: first, simply as stochastic models which generalize Markov
 chains, variable-length Markov chains, etc., and already have applications in
-fields like natural language processing.  From the other, start with the idea
-of a general stochastic process and extract its predictive representation
+fields like natural language processing.
+
+From the other, start with the idea of a general stochastic process and extract
+its predictive representation
 \cite{Knight-predictive-view,Knight-foundations-of-prediction,CMPPSS,predictive-representations-of-state}.
+
 If the latter has a finite number of states and some further regularity
-properties, we are in business.]]
+properties, we are in business.
 
-[[\cite{CSSR-for-UAI} introduced a discovery procedure for these models;
-this is a new one in the same spirit]]
-
-The new procedure hybridizes what we did in CSSR \cite{CSSR-for-UAI} with the
-Holmes and Isbell algorithm \cite{Holmes-Isbell-looping}.  It has three phases.
+\cite{CSSR-for-UAI} introduced a discovery procedure for these models;
+this is a new one in the same spirit. The new procedure hybridizes what we did
+in CSSR \cite{CSSR-for-UAI} with the Holmes and Isbell algorithm
+\cite{Holmes-Isbell-looping}. It has three phases.
 
 The first phase learns the conditional distribution of the next symbol given
-histories of various lengths.  For right now we will assume that this is
+histories of various lengths. For right now we will assume that this is
 carried out to a maximum history length $L$, but it may be possible to
 eliminate this.
 
@@ -28,19 +30,19 @@ The second phase modifies the Holmes-Isbell procedure to learn what they call a
 ``looping tree''\footnote{The name is something of an oxymoron, and it would be
   nice to have a better one.}, where terminal nodes correspond to sets of
 histories which all have the same distribution for the next symbol, and where
-further history does not alter that distribution.  (More about this below.)
+further history does not alter that distribution. (More about this below.)
 
 The third phase refines the looping tree to ensure deterministic transitions
-among the history-classes, in the process turning them into states.  This is
+among the history-classes, in the process turning them into states. This is
 something Holmes and Isbell do not consider.
 
 The three phases raise three kinds of issues for convergence/reliability.
 
 Phase one requires estimates of conditional probabilities to converge, perhaps
-to converge sufficiently rapidly.  This is important but is set aside in the
-current document.  [[Ale assembled lots of notes relevant to this, which need
-to be integrated.  It may also be possible to make the sketch used in
-\cite{CSSR-for-UAI} fully rigorous.  See below.]]
+to converge sufficiently rapidly. This is important but is set aside in the
+current document. [[Ale assembled lots of notes relevant to this, which need
+to be integrated. It may also be possible to make the sketch used in
+\cite{CSSR-for-UAI} fully rigorous. See below.]]
 
 The issue for the second phase, the initial construction of a looping tree, is
 whether it will in fact procedure a partition which is next-step sufficient.
@@ -48,15 +50,15 @@ It seems that it will, {\em if} the first phase works.
 
 The issue for the third phase is whether it will always refine an initial
 looping tree into a looping tree with recursive state transitions, and if so
-whether it will be the minimal refinement.  The answer to the second question
+whether it will be the minimal refinement. The answer to the second question
 seems to be ``yes', but the answer for the first question is not so clear, and
 this seems to be the major outstanding problem.
 
 The current discussion of the second and third phases assumes that our
 inferences during the first phase are good enough to answer some qualitative
 questions (of the form ``do these two histories lead to the same distribution
-for the next observation?'') accurately.  In practice, with finite data the
-queries will be answered correctly only with some probability.  At what rate
+for the next observation?'') accurately. In practice, with finite data the
+queries will be answered correctly only with some probability. At what rate
 must those error probabilities go to zero to ensure that the over-all algorithm
 converges on the truth?  What must we assume about the data source to attain
 that rate?
