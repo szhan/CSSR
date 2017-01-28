@@ -52,7 +52,7 @@ HashTable2 *ParseTree::MakeAlphaHash() {
     symbol[0] = m_alpha[k];
     m_alphaHash->Insert(symbol, k);
   }
-  delete symbol;
+  delete[] symbol;
   return m_alphaHash;
 }
 
@@ -584,7 +584,7 @@ void ParseTree::MakeSynchAdjustements(char *synchString, int index) {
   char *nextLString = new char[m_maxLength + END_STRING];
   strcpy(tempString, synchString);
   int i, j, k;
-  int tempCounter = 0;
+  //int tempCounter = 0;
 
 
   for (i = 0; i < m_maxLength - 1; i++) {
@@ -594,8 +594,8 @@ void ParseTree::MakeSynchAdjustements(char *synchString, int index) {
   strcat(tempString, nextLString);
 
   //look at all max length strings and decrement occurences
-  if (strlen(tempString) >= m_maxLength) {
-    while (counter < (strlen(tempString) - m_maxLength)) {
+  if (strlen(tempString) >= ((unsigned long) m_maxLength)) {
+    while (((unsigned long) counter) < (strlen(tempString) - m_maxLength)) {
       for (k = 0; k < m_maxLength; k++) {
         nextLString[k] = tempString[k + counter];
       }

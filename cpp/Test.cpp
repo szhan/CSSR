@@ -249,7 +249,7 @@ void Test::KStwo(double data1[], unsigned long n1, double data2[],
   }
 
   //calculate KS statistic - take max difference between 2 values
-  while (j < dist_size) {
+  while (dist_size >= 0 && j < ((unsigned long) dist_size)) {
     max = fabs(temp1[j] - temp2[j]);
     if (max > *d) {
       *d = max;

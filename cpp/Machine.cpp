@@ -57,7 +57,7 @@ Machine::Machine(AllStates *allstates) {
 // Post-Cond: the string probabilities have been calculated and stored
 //            in an array
 //////////////////////////////////////////////////////////////////////////
-void Machine::CalcStringProbs(G_Array *g_array, int maxLength,
+void Machine::CalcStringProbs(G_Array *g_array, int /*maxLength*/,
                               HashTable2 *hashtable, double stringProbs[]) {
   int stringArraySize = g_array->getSize();
   char *string = NULL;
@@ -84,7 +84,7 @@ void Machine::CalcStringProbs(G_Array *g_array, int maxLength,
 double Machine::CalcStringProb(char *string, HashTable2 *hashtable) {
   double totalPerString = 0;
   double totalPerState;
-  double total = 0;
+  //double total = 0;
   State *currentState;
   State *startState;
   int stateArraySize = m_allstates->getArraySize();
@@ -138,9 +138,9 @@ double Machine::CalcStringProb(char *string, HashTable2 *hashtable) {
 // Post-Cond: the relative entropy has been calculated and stored in the 
 //            machine class as a member variable
 //////////////////////////////////////////////////////////////////////////
-void Machine::CalcRelEnt(ParseTree &parsetree, HashTable2 *hashtable, bool isMulti) {
+void Machine::CalcRelEnt(ParseTree &parsetree, HashTable2 *hashtable, bool /*isMulti*/) {
   G_Array g_array;
-  int dataSize = parsetree.getDataSize();
+  //int dataSize = parsetree.getDataSize();
   int alphaSize = parsetree.getAlphaSize();
   int maxLength = parsetree.getMaxLength();
   int adjustedDataSize = parsetree.getAdjustedDataSize();
@@ -195,9 +195,9 @@ void Machine::CalcRelEnt(ParseTree &parsetree, HashTable2 *hashtable, bool isMul
 // Post-Cond: the relative entropy rate has been calculated and stored in the 
 //            machine class as a member variable
 //////////////////////////////////////////////////////////////////////////
-void Machine::CalcRelEntRate(ParseTree &parsetree, HashTable2 *hashtable, bool isMulti) {
+void Machine::CalcRelEntRate(ParseTree &parsetree, HashTable2 *hashtable, bool /*isMulti*/) {
   G_Array g_array;
-  int dataSize = parsetree.getDataSize();
+  //int dataSize = parsetree.getDataSize();
   int alphaSize = parsetree.getAlphaSize();
   int maxLength = parsetree.getMaxLength();
   int adjustedDataSize = parsetree.getAdjustedDataSize();
@@ -209,7 +209,7 @@ void Machine::CalcRelEntRate(ParseTree &parsetree, HashTable2 *hashtable, bool i
   ArrayElem **list = g_array.getList();
   double totalRelEntRate = 0;
   double relEntRateHist = 0;
-  double childStringProb = 0;
+  //double childStringProb = 0;
   char *alpha = parsetree.getAlpha();
 
   //determine the inferred distributions of max - 1 length strings
@@ -366,9 +366,9 @@ double Machine::CalcRelEntRateAlpha(double stringProb,
 // Post-Cond: the relative entropy rate has been calculated and stored in the 
 //            machine class as a member variable
 //////////////////////////////////////////////////////////////////////////
-void Machine::CalcVariation(ParseTree &parsetree, HashTable2 *hashtable, bool isMulti) {
+void Machine::CalcVariation(ParseTree &parsetree, HashTable2 *hashtable, bool /*isMulti*/) {
   G_Array g_array;
-  int dataSize = parsetree.getDataSize();
+  // int dataSize = parsetree.getDataSize();
   int alphaSize = parsetree.getAlphaSize();
   int maxLength = parsetree.getMaxLength();
   int adjustedDataSize = parsetree.getAdjustedDataSize();

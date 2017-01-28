@@ -128,7 +128,7 @@ void AllStates::Insert(ArrayElem *elem, State *state) {
 
 std::string AllStates::toString() {
   std::string str = "";
-  int tempCount = m_arraySize;
+  //int tempCount = m_arraySize;
   for (int i = 0; i < m_arraySize; i++) {
     str += "\n\t" + m_StateArray[i]->toString();
   }
@@ -337,7 +337,7 @@ bool AllStates::CompareToParent(char *&removalString, State *&removalState,
     (removalString)++;
   }
   else {
-    (removalString) = "NULL";
+    (removalString) = (char*) "NULL";
   }
 
   (removalState) = m_table->WhichState(removalString);
@@ -408,8 +408,8 @@ void AllStates::Determinize(ParseTree &parsetree) {
   int **stateArray = new int *[m_distSize];
   int arraySize;
   bool isDeterministic; //variable to check whether states are not created
-  int maxLength = parsetree.getMaxLength();
-  bool firstPass = true;
+  //int maxLength = parsetree.getMaxLength();
+  //bool firstPass = true;
   bool isStatesRemoved;
 
   for (int q = 0; q < m_distSize; q++) {
@@ -601,7 +601,7 @@ bool AllStates::DestroyLongHists(int maxLength, ParseTree &parsetree) {
   //one less than the max, and set transitions here if so
   for (int i = 0; i < m_arraySize; i++) {
     longHist = m_StateArray[i]->getStringList();
-    if (strlen(longHist->m_string) == maxLength - 1) {
+    if (maxLength > 0 && strlen(longHist->m_string) == ((unsigned long) maxLength - 1)) {
       FindNSetTransitions(i, maxLength, parsetree.getAlpha());
     }
   }
@@ -609,7 +609,7 @@ bool AllStates::DestroyLongHists(int maxLength, ParseTree &parsetree) {
   //for all states in array of states
   for (int j = 0; j < m_arraySize; j++) {
     longHist = m_StateArray[j]->getStringList();
-    while ((longHist) && (strlen(longHist->m_string) < maxLength)) {
+    while ((longHist) && (strlen(longHist->m_string) < ((unsigned long) maxLength))) {
       longHist = longHist->m_nextPtr;
     }
 
@@ -655,7 +655,8 @@ bool AllStates::DestroyShortHists(int maxLength, ParseTree &parsetree) {
       m_table->RemoveString(deadHist->m_string);
     }
     //check for histories which are too short
-    while ((shortHist) && (strlen(shortHist->m_string) < maxLength - 1)) {
+    //
+    while ((shortHist) && maxLength > 0 && (strlen(shortHist->m_string) < ((unsigned long) maxLength - 1))) {
       deadHist = shortHist;
       shortHist = shortHist->m_nextPtr;
       m_table->RemoveString(deadHist->m_string);
@@ -1016,7 +1017,7 @@ bool AllStates::RemoveTransientStates(int *stateArray, bool done,
 // Pre- Cond: memory is allocated for arrays
 // Post-Cond: arrays contain valid information
 ///////////////////////////////////////////////////////////////////////////
-void AllStates::CreateChildStateArray(ParseTree &parsetree, int arraySize,
+void AllStates::CreateChildStateArray(ParseTree &parsetree, int /*arraySize*/,
                                       int **stateArray,
                                       StringElem **stringArray, int index) {
   char *alpha = parsetree.getAlpha();
@@ -1027,7 +1028,7 @@ void AllStates::CreateChildStateArray(ParseTree &parsetree, int arraySize,
   int childState;
   char *symbol = new char[2];
   int maxLength = parsetree.getMaxLength();
-  bool isEmpty = false;
+  //bool isEmpty = false;
 
   //fill the arrays for each string
   while (temp != NULL) {
@@ -1179,11 +1180,11 @@ bool AllStates::CheckUniqueTrans(StringElem *transString, int removalState,
 void AllStates::InitialFrequencies(ParseTree &parsetree) {
   G_Array g_array;
   StringElem *temp;
-  char *charArray = new char[m_distSize];
+  //char *charArray = new char[m_distSize];
   int *intArray = new int[m_distSize];
 
   //find strings of length one and their distributions
-  int size = parsetree.FindRoots(charArray, intArray);
+  //int size = parsetree.FindRoots(charArray, intArray);
 
   //make first, NULL, state with unconditional 
   //frequencies for one and zero as string counts
@@ -1239,7 +1240,7 @@ void AllStates::GetStateDistsMulti(ParseTree &parsetree, char input[],
   int adjustedDataLength = parsetree.getDataSize();
   // We need to deduct all the data-points where we're synchronizing from the
   // total, so we get probabilities for states which sum to one
-  int numberLines = parsetree.getNumLines();
+  //int numberLines = parsetree.getNumLines();
   int maxLength = parsetree.getMaxLength();
   int i = 0;
   int k = 0;
@@ -1420,7 +1421,7 @@ int AllStates::SynchToStatesMulti(int &index, int &lineIndex, int state,
   char *string = new char[maxLength + 1 + END_STRING];
   char *tempString;
   int tempIndex = 0;
-  int synchCount = 0;
+  //int synchCount = 0;
   char *symbol = new char[2];
   char *tempSynch;
   symbol[0] = data[index];
