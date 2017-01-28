@@ -1,0 +1,97 @@
+\documentclass{article}
+\usepackage[parfill]{parskip}
+\usepackage{inconsolata}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage[ampersand]{easylist}
+\ListProperties(Hide=100, Hang=true, Progressive=3ex, Style*=-- , Style2*=$\circ$ ,Style3*=$\bullet$ ,Style4*=\tiny$\blacksquare$ )
+
+\begin{document}
+\title{Proofs for merging edgesets}
+\author{by Sam Stites}
+\date{\LaTeX 'd \today}
+\maketitle
+
+We were talking about re-introducing the idea of “splitting” from CSSR, but
+found that there might be some promise in merging the edge sets late in the
+procedure to avoid this problem.
+
+Unless I misunderstood, moving back to a CSSR-style “splitting” seems like we
+wind up in another chicken-and-egg style method of reaching determinism. We need
+to prove that the algorithm reaches a deterministic state for any finite number
+of steps, then we have to scope it down to a single procedure/step. If it
+recurses, we need to ensure that recursing will stop. Since most of this has
+been done in CSSR already, it’s doable.
+
+We came up with another option which seems to fit into the current procedure a
+little better. The idea is to make the following alterations to the procedure:
+
+\begin{easylist}
+& Currently, by the time we reach refinement, any nodes with identical
+  distributions are merged into edge sets. We would delay this until after
+  refinement.
+& Because refinement yields a terminal node’s transition states, we store this.
+& At the end of refinement, find all terminal nodes which have identical distributions.
+&& if their transition states are identical, merge these states.
+&& if not, then we keep them separate.
+& Repeat refinement (because we have changed the state).
+\end{easylist}
+
+The taking the counter-example looping tree in the pdf, as well as talking
+through other cases, we find that this work well.
+
+\section{Very rough proofs we would need to add in order to account for this edge-case}
+
+I haven't written a proof in over three years at this point, but I would assume
+we would need to prove two things: that all states exist in the looping tree
+before we merge edge sets, and that when we merge edge sets we have a 1-1
+correlation with states from the automaton.
+
+This might all be completely useless since I may have bad assumptions, however
+if this does work out, I'm hopeful that we may find a corollary which shows that
+we only need to do one pass of merging.
+
+\subsection{Assumptions (things already discussed in the draft)}
+
+Given that we have sufficiently complete data - meaning all possible histories
+emitted by a state machine can be observed, and enough data has been aggregate
+wherein we can make reasonable frequency estimates of a history which
+correlate to the originating state machine
+
+\subsection{All states exist in the looping tree before we merge edgesets}
+
+Let us assume that we cannot hold a state in a looping tree (like I said, this
+is very rough - this is a terrible assumption prove the point).
+
+Because the parse tree is created from “complete” data, we know that state can
+be exemplified by histories from the parse tree. Hopefully we have a proof,
+possibly using determinism, which states that there exists some history which
+exemplifies a state.
+
+Given that there exists a unique string which maps to a state, we can claim
+that it must live in the parse tree. Furthermore, due to completeness of thed
+data, we can state that all histories of this nature live in the parse tree.
+Thus, we can hold every state in the looping tree by replicating the parse
+tree - breaking the first assumption about holding a state in the looping tree
+representation.
+
+Because of the properties/proofs in the daft regarding homogeneity, matching,
+and excisability, we claim that this history representation of a state exists
+as the terminal nodes of the looping tree.
+
+Thus, by lots of handwaving, we can state that every terminal node maps to
+every state in the automaton, even if this is not a 1-1 correlation.
+
+\subsection{When we merge edgesets we get a 1-1 correlation from nodes to states}
+
+Given that we have a looping tree with terminal nodes pointing to states in a
+deterministic automaton, we need to prove that we can reduce the terminal
+nodes to exactly match the number of states in the automaton.
+
+Given that we have a set of state representations, we can make this claim by
+looking at conditional next-step transitions, as well as looking at the
+transition states of the terminal node. If both are identical, because we are
+working with a deterministic automaton we know that these nodes represent the
+same state and can merge them.
+
+\end{document}
