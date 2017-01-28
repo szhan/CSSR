@@ -9,7 +9,7 @@ entr_warn:
 	@echo "----------------------------------------------------------"
 
 build:
-	pdflatex -jobname=out/new-procedure new-procedure.tex
+	pdflatex -jobname=out/new-procedure new-procedure.tex && bibtex new-procedure.tex
 
 build-algorithm:
 	pdflatex -jobname=out/algorithm algorithm.tex
