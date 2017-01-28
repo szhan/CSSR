@@ -183,10 +183,6 @@ void Test::nerror(const char error_text[]) {
 }
 
 double Test::RunTest(double dist1[], int count1, double dist2[], int count2, int distSize) {
-  cout << "Running test --";
-  cout << " Count1: " << std::to_string(count1);
-  cout << " Count2: " << std::to_string(count2);
-  cout << endl;
   if (m_type == KS) {
     return RunKSTest(dist1, count1, dist2, count2, distSize);
   }
