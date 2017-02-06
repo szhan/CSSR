@@ -138,6 +138,28 @@ walk cur es
       Nothing -> return Nothing
       Just nxt -> walk nxt (V.tail es)
 
+-------------------------------------------------------------------------------
+-- | == Phase II: "Growing a Looping Tree" algorithm
+--
+-- INIT root looping node
+-- INIT queue of active, unchecked nodes
+-- QUEUE root
+-- WHILE queue is not empty
+--   DEQUEUE first looping node from the queue
+--   COMPUTE homogeneity(dequeued looping node, parse tree)
+--   IF node is homogeneous
+--   THEN continue
+--   ELSE
+--     CONSTRUCT new looping nodes for all valid children (one for each symbol in
+--               alphabet - must have empirical observation in dataset).
+--     FOR each new node constructed
+--       COMPUTE excisability(node, looping tree)
+--       COMPUTE isEdge(node, looping tree)
+--       ADD all new looping nodes to children of active node (mapped by symbol)
+--       ADD unexcisable children to queue (FIXME: what about edgesets?)
+--   ENDIF
+-- ENDWHILE
+-------------------------------------------------------------------------------
 grow :: forall s . Double -> HistTree -> ST s (MLLeaf s)
 grow sig (HistTree _ a hRoot) = do
   rt <- mkRoot a hRoot
@@ -158,7 +180,6 @@ grow sig (HistTree _ a hRoot) = do
           cs' <- nextChilds
           let cs = fmap snd cs'
           -- FIXME: nextChilds to alternate nodes
-
           mapM_ (uncurry $ H.insert (_children active)) cs'
           writeSTRef termsRef (cs <> delete active terms)
           go (next <> S.fromList cs) termsRef
@@ -177,6 +198,12 @@ grow sig (HistTree _ a hRoot) = do
 
         groupHistory :: [HLeaf] -> [(Event, [HLeaf])]
         groupHistory = groupBy (V.head . view (Hist.body . Hist.obs))
+
+        nextChilds :: ST s [MLLeaf s]
+        nextChilds = do
+          hs <- (fmap.fmap) fst . H.toList . _histories $ active
+          traverse (\(e, _hs) -> (e,) <$> mkLeaf (Just active) _hs) $ groupHistory hs
+
 
 -------------------------------------------------------------------------------
 -- Predicates for the consturction of a looping tree
