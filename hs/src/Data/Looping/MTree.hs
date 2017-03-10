@@ -29,46 +29,34 @@ import qualified Data.Looping.Tree as L
 type HashTableSet s a = C.HashTable s a Bool
 
 data MLLeaf s = MLLeaf
-  { _isLoop    :: STRef s (Maybe (MLLeaf s))
   -- | for lack of a mutable hash set implementation
-  , _histories :: HashTableSet s HLeaf
+  { _histories :: HashTableSet s HLeaf
   , _frequency :: MVector s Integer
-  , _children :: C.HashTable s Event (MLLeaf s)
+  , _children :: C.HashTable s Event (MLNode s)
   , _parent :: STRef s (Maybe (MLLeaf s))
   }
 
+type Loop s = MLLeaf s
+type MLNode s = Either (Loop s) (MLLeaf s)
+
 instance Eq (MLLeaf s) where
-  ml0 == ml1 = (_parent ml0 == _parent ml1)
-    && (_isLoop ml0 == _isLoop ml1)
+  ml0 == ml1
+    =  undefined -- _parent ml0    == _parent ml1
+
+--    && _histories ml0 == _histories ml1
 
 data MLoopingTree s = MLoopingTree
   { _terminals :: HashSet (MLLeaf s)
   , _root :: MLLeaf s
   }
 
--- freezeNoParents :: MLLeaf s -> ST s L.LLeaf
--- freezeNoParents ml = do
---   il <- readSTRef . _isLoop $ ml
---   hs <- freezeHistories ml
---   f <- V.freeze . _frequency $ ml
---   cs <- (H.toList . _children $ ml) >>= freezeDown
---   return $ L.LLeaf (L.LLeafBody il hs f) cs Nothing
---
---   where
---     freezeHistories :: MLLeaf s -> ST s (HashSet Hist.HLeaf)
---     freezeHistories = fmap (HS.fromList . fmap fst) . H.toList . _histories
---
---     freezeDown :: [(Event, MLLeaf s)] -> ST s (HashMap Event L.LLeaf)
---     freezeDown = fmap HM.fromList . traverse (\(e, cml) -> do
---       c <- freezeNoParents cml
---       return (e, c))
-
-freeze :: forall s . MLLeaf s -> ST s L.LLeaf
-freeze ml = do
-  (il :: Maybe (MLLeaf s)) <- readSTRef . _isLoop $ ml
-  hs <- freezeHistories ml
-  f <- V.freeze . _frequency $ ml
-  cs <- (H.toList . _children $ ml) >>= freezeDown
+freeze_ :: forall s . Double -> MLLeaf s -> ST s L.LLeaf
+freeze_ sig ml = do
+  --(il :: Maybe (MLLeaf s)) <- readSTRef . _isLoop $ ml
+  hs  <- freezeHistories ml
+  f   <- V.freeze . _frequency $ ml
+  cs' <- H.toList . _children  $ ml
+  cs  <- freezeDown cs'
   -- FIXME: L.LLeafBody Nothing is false and is only there because i want ghc
   -- to stop yelling at me. We are actually working with a cyclic data structure
   -- so freezing it will take some thought
@@ -85,11 +73,18 @@ freeze ml = do
     freezeHistories :: MLLeaf s -> ST s (HashSet Hist.HLeaf)
     freezeHistories = fmap (HS.fromList . fmap fst) . H.toList . _histories
 
-    freezeDown :: [(Event, MLLeaf s)] -> ST s (HashMap Event L.LLeaf)
-    freezeDown = fmap HM.fromList . traverse (\(e, cml) -> do
-      c <- freeze cml
-      return (e, c))
-
+    freezeDown :: [(Event, MLNode s)] -> ST s (HashMap Event L.LLeaf)
+    freezeDown cs = do
+      frz <- traverse icer cs
+      return $ HM.fromList frz
+      where
+        icer :: (Event, MLNode s) -> ST s (Event, L.LLeaf)
+        icer (e, Left lp) = do
+          f <- V.freeze (_frequency lp)
+          undefined -- FIXME: get a better way to unfreeze a cyclic data structure
+        icer (e, Right lp) = do
+          c <- freeze_ sig lp
+          return (e, c)
 
 thaw :: L.LLeaf -> ST s (MLLeaf s)
 thaw ll@(L.LLeaf lb cs p) = do
@@ -101,15 +96,26 @@ thaw ll@(L.LLeaf lb cs p) = do
   cs <- thawDown (HM.toList . L.children $ ll)
   p <- newSTRef Nothing
   -- FIXME: ditto with freeze -- see above
-  let cur = MLLeaf il hs f cs p
-  H.mapM_ (\(_, c) -> writeSTRef (_parent c) (Just cur)) cs
+  let cur = MLLeaf hs f cs p
+  H.mapM_ (writeParent cur) cs
   return cur
 
   where
-    thawDown :: [(Event, L.LLeaf)] -> ST s (C.HashTable s Event (MLLeaf s))
-    thawDown cs = H.fromList =<< traverse (\(e, cml) -> do
-      c <- thaw cml
-      return (e, c)) cs
+    writeParent :: MLLeaf s -> (Event, MLNode s) -> ST s ()
+    writeParent cur (_, Right c) = writeSTRef (_parent c) (Just cur)
+    writeParent cur _            = return () -- loops are already accounted for
+
+    thawDown :: [(Event, L.LLeaf)] -> ST s (C.HashTable s Event (MLNode s))
+    thawDown cs = do
+      cs' <- traverse heater cs
+      H.fromList cs'
+        where
+          heater :: (Event, L.LLeaf) -> ST s (Event, MLNode s)
+          heater (e, l) = do
+            c <- thaw l
+            -- magical case statement checking if we've seen the frozen
+            -- structure
+            return (e, undefined)
 
 
 mkLeaf :: Maybe (MLLeaf s) -> [HLeaf] -> ST s (MLLeaf s)
@@ -120,25 +126,28 @@ mkLeaf p' hs' = do
   mv <- GV.thaw v
   cs <- H.new
   p <- newSTRef p'
-  return $ MLLeaf il hs mv cs p
+  return $ MLLeaf hs mv cs p
 
 mkRoot :: Alphabet -> HLeaf -> ST s (MLLeaf s)
 mkRoot (Alphabet vec _) hrt =
   MLLeaf
-    <$> newSTRef Nothing
-    <*> H.fromList [(hrt, True)]
+    <$> H.fromList [(hrt, True)]
     <*> MV.replicate (V.length vec) 0
     <*> H.new
     <*> newSTRef Nothing
 
-walk :: MLLeaf s -> Vector Event -> ST s (Maybe (MLLeaf s))
+walk :: forall s . MLNode s -> Vector Event -> ST s (Maybe (MLNode s))
 walk cur es
   | null es = return $ Just cur
   | otherwise = do
-    f <- H.lookup (_children cur) (V.head es)
+    f <- H.lookup (_children (reify cur)) (V.head es)
     case f of
       Nothing -> return Nothing
       Just nxt -> walk nxt (V.tail es)
+  where
+    reify :: MLNode s -> MLLeaf s
+    reify (Left  l) = l
+    reify (Right l) = l
 
 -------------------------------------------------------------------------------
 -- | == Phase II: "Growing a Looping Tree" algorithm
@@ -180,25 +189,24 @@ grow sig (HistTree _ a hRoot) = do
         then go next termsRef
         else do
           cs' <- nextChilds
-          let cs = fmap snd cs'
+          let cs'' = fmap snd cs'
           -- COMPUTE excisability(node, looping tree)
-          forM_ cs computeExcisable
+          cs <- mapM (\(e, x) -> do
+            x' <- findLoops x
+            return (e, x')) cs'
 
-          mapM_ (uncurry $ H.insert (_children active)) cs'
-          writeSTRef termsRef (cs <> delete active terms)
+          forM_ cs (\(e, x) -> H.insert (_children active) e x)
+          writeSTRef termsRef (cs'' <> delete active terms)
           --   ADD all new looping nodes to children of active (mapped by symbol)
           --   ADD unexcisable children to queue (FIXME: what about edgesets?)
-          go (next <> S.fromList cs) termsRef
+          go (next <> S.fromList cs'') termsRef
 
       where
-        computeExcisable :: MLLeaf s -> ST s (MLLeaf s)
-        computeExcisable ll =
+        findLoops :: MLLeaf s -> ST s (MLNode s)
+        findLoops ll =
           excisable sig ll >>= \case
-            Nothing -> return ll
-            Just ex -> do
-              l <- newSTRef (Just ex)
-              writeSTRef (_isLoop ex) (Just ex)
-              return ll
+            Nothing -> return $ Right ll
+            Just ex -> return $ Left ex
 
         next :: Seq (MLLeaf s)
         (active', next) = S.splitAt 1 queue
@@ -324,7 +332,7 @@ isHomogeneous sig ll = do
 --     ELSE do nothing
 --     ENDIF
 --   ENDFOR
---
+
 excisable :: forall s . Double -> MLLeaf s -> ST s (Maybe (MLLeaf s))
 excisable sig ll = getAncestors ll >>= go
   where
