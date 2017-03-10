@@ -8,9 +8,8 @@ import qualified Data.Vector as V
 import Data.Vector (Vector, (!))
 import qualified Data.HashTable.ST.Cuckoo as C
 import qualified Data.HashTable.Class as H
-import Data.Foldable
 
-import CSSR.Prelude
+import CSSR.Prelude.Mutable
 import Data.CSSR.Alphabet
 import Data.Parse.Tree
 

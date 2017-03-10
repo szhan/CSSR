@@ -1,16 +1,12 @@
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE LambdaCase #-}
 module Data.Looping.MTree where
 
-import Data.STRef
 import qualified Data.HashSet as HS
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Vector as V
-import Data.Vector (Vector, (!))
-import Data.Function (on)
-import Data.Vector.Mutable (MVector)
-import Data.Sequence (Seq)
 import qualified Data.Sequence as S
 import qualified Data.Vector.Mutable as MV
 import qualified Data.Vector.Generic as GV
@@ -18,7 +14,7 @@ import qualified Data.HashTable.ST.Cuckoo as C
 import qualified Data.HashTable.Class as H
 import Data.Foldable
 
-import CSSR.Prelude
+import CSSR.Prelude.Mutable
 import Data.CSSR.Alphabet
 import Data.Hist.Tree (HLeaf, HLeafBody, HistTree(..))
 import qualified Data.Hist.Tree as Hist
@@ -33,7 +29,7 @@ import qualified Data.Looping.Tree as L
 type HashTableSet s a = C.HashTable s a Bool
 
 data MLLeaf s = MLLeaf
-  { _isLoop    :: STRef s Bool
+  { _isLoop    :: STRef s (Maybe (MLLeaf s))
   -- | for lack of a mutable hash set implementation
   , _histories :: HashTableSet s HLeaf
   , _frequency :: MVector s Integer
@@ -67,13 +63,16 @@ data MLoopingTree s = MLoopingTree
 --       c <- freezeNoParents cml
 --       return (e, c))
 
-freeze :: MLLeaf s -> ST s L.LLeaf
+freeze :: forall s . MLLeaf s -> ST s L.LLeaf
 freeze ml = do
-  il <- readSTRef . _isLoop $ ml
+  (il :: Maybe (MLLeaf s)) <- readSTRef . _isLoop $ ml
   hs <- freezeHistories ml
   f <- V.freeze . _frequency $ ml
   cs <- (H.toList . _children $ ml) >>= freezeDown
-  let cur = L.LLeaf (L.LLeafBody il hs f) cs Nothing
+  -- FIXME: L.LLeafBody Nothing is false and is only there because i want ghc
+  -- to stop yelling at me. We are actually working with a cyclic data structure
+  -- so freezing it will take some thought
+  let cur = L.LLeaf (L.LLeafBody Nothing hs f) cs Nothing
   return $ withChilds cur (HM.map (withParent (Just cur)) cs)
 
   where
@@ -94,11 +93,14 @@ freeze ml = do
 
 thaw :: L.LLeaf -> ST s (MLLeaf s)
 thaw ll@(L.LLeaf lb cs p) = do
-  il <- newSTRef (L.isLoop lb)
+  l <- newSTRef (L.isLoop lb)
+  -- FIXME: ditto with freeze -- see above
+  il <- newSTRef Nothing
   hs <- H.fromList (fmap (,True) . HS.toList . L.histories $ lb)
   f <- V.thaw (L.frequency lb)
   cs <- thawDown (HM.toList . L.children $ ll)
   p <- newSTRef Nothing
+  -- FIXME: ditto with freeze -- see above
   let cur = MLLeaf il hs f cs p
   H.mapM_ (\(_, c) -> writeSTRef (_parent c) (Just cur)) cs
   return cur
@@ -112,7 +114,7 @@ thaw ll@(L.LLeaf lb cs p) = do
 
 mkLeaf :: Maybe (MLLeaf s) -> [HLeaf] -> ST s (MLLeaf s)
 mkLeaf p' hs' = do
-  il <- newSTRef False
+  il <- newSTRef Nothing
   hs <- H.fromList $ fmap (, True) hs'
   let v = foldr1 Prob.addFrequencies $ fmap (view (Hist.body . Hist.frequency)) hs'
   mv <- GV.thaw v
@@ -123,7 +125,7 @@ mkLeaf p' hs' = do
 mkRoot :: Alphabet -> HLeaf -> ST s (MLLeaf s)
 mkRoot (Alphabet vec _) hrt =
   MLLeaf
-    <$> newSTRef False
+    <$> newSTRef Nothing
     <*> H.fromList [(hrt, True)]
     <*> MV.replicate (V.length vec) 0
     <*> H.new
@@ -154,7 +156,6 @@ walk cur es
 --               alphabet - must have empirical observation in dataset).
 --     FOR each new node constructed
 --       COMPUTE excisability(node, looping tree)
---       COMPUTE isEdge(node, looping tree)
 --       ADD all new looping nodes to children of active node (mapped by symbol)
 --       ADD unexcisable children to queue (FIXME: what about edgesets?)
 --   ENDIF
@@ -162,16 +163,17 @@ walk cur es
 -------------------------------------------------------------------------------
 grow :: forall s . Double -> HistTree -> ST s (MLLeaf s)
 grow sig (HistTree _ a hRoot) = do
-  rt <- mkRoot a hRoot
-  ts <- newSTRef [rt]
+  rt <- mkRoot a hRoot   -- ^ INIT root looping node
+  ts <- newSTRef [rt]    -- ^ INIT queue of active, unchecked nodes
+                         --   QUEUE root
   go (S.singleton rt) ts
   return rt
-
   where
+
     go :: Seq (MLLeaf s) -> STRef s [MLLeaf s] -> ST s ()
-    go queue termsRef
+    go queue termsRef             -- ^ DEQUEUE first looping node from the queue
       | S.null queue = return ()
-      | otherwise = do
+      | otherwise = do            -- ^ WHILE queue is not empty
         terms <- readSTRef termsRef
         isH <- isHomogeneous sig active
         if isH
@@ -179,18 +181,34 @@ grow sig (HistTree _ a hRoot) = do
         else do
           cs' <- nextChilds
           let cs = fmap snd cs'
-          -- FIXME: nextChilds to alternate nodes
+          -- COMPUTE excisability(node, looping tree)
+          forM_ cs computeExcisable
+
           mapM_ (uncurry $ H.insert (_children active)) cs'
           writeSTRef termsRef (cs <> delete active terms)
+          --   ADD all new looping nodes to children of active (mapped by symbol)
+          --   ADD unexcisable children to queue (FIXME: what about edgesets?)
           go (next <> S.fromList cs) termsRef
 
       where
+        computeExcisable :: MLLeaf s -> ST s (MLLeaf s)
+        computeExcisable ll =
+          excisable sig ll >>= \case
+            Nothing -> return ll
+            Just ex -> do
+              l <- newSTRef (Just ex)
+              writeSTRef (_isLoop ex) (Just ex)
+              return ll
+
         next :: Seq (MLLeaf s)
         (active', next) = S.splitAt 1 queue
 
         active :: MLLeaf s
         active = S.index active' 0
 
+        -- CONSTRUCT new looping nodes for all valid children
+        --    (one for each symbol in alphabet - must have empirical
+        --    observation in dataset).
         nextChilds :: ST s [(Event, MLLeaf s)]
         nextChilds = do
           hs <- (fmap.fmap) fst . H.toList . _histories $ active
@@ -199,14 +217,8 @@ grow sig (HistTree _ a hRoot) = do
         groupHistory :: [HLeaf] -> [(Event, [HLeaf])]
         groupHistory = groupBy (V.head . view (Hist.body . Hist.obs))
 
-        nextChilds :: ST s [MLLeaf s]
-        nextChilds = do
-          hs <- (fmap.fmap) fst . H.toList . _histories $ active
-          traverse (\(e, _hs) -> (e,) <$> mkLeaf (Just active) _hs) $ groupHistory hs
-
-
 -------------------------------------------------------------------------------
--- Predicates for the consturction of a looping tree
+-- Predicates for the construction of a looping tree
 
 -- | === isEdge
 -- Psuedocode from paper:

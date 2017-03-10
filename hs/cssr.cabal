@@ -1,4 +1,4 @@
--- This file has been generated from package.yaml by hpack version 0.14.0.
+-- This file has been generated from package.yaml by hpack version 0.15.0.
 --
 -- see: https://github.com/sol/hpack
 
@@ -44,6 +44,7 @@ library
   exposed-modules:
       CSSR.Algorithm
       CSSR.Prelude
+      CSSR.Prelude.Mutable
       CSSR.TypeAliases
       Data.CSSR.Alphabet
       Data.CSSR.Debug

@@ -6,6 +6,7 @@ import Data.CSSR.Alphabet
 import qualified Data.HashSet as HS
 import qualified Data.Vector as V
 
+import CSSR.Prelude.Mutable
 import CSSR.Prelude.Test
 
 main :: IO ()

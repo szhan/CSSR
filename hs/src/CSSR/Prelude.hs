@@ -1,39 +1,32 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module CSSR.Prelude
-  ( X.Vector
-  , X.HashMap
-  , X.HashSet
-  , Generic
-
+  ( module X
   , groupBy
-
-  , module Lens.Micro.Platform
-  , module Data.Monoid
-  , module Control.Monad.ST
-  , module Debug.Trace
-  , module Data.List
-  , module Data.Maybe
-  , module Control.Exception
-  , module Data.Hashable
-
-  , module CSSR.TypeAliases
   ) where
 
-import qualified Data.Vector as X (Vector)
-import qualified Data.HashMap.Strict as X (HashMap)
-import qualified Data.HashSet as X (HashSet)
+import Lens.Micro.Platform as X
+import Data.Monoid         as X
+import Debug.Trace         as X
+import Data.List           as X hiding (groupBy)
+import Data.Maybe          as X
+import Control.Exception   as X
+import Data.Hashable       as X
+import Data.Vector         as X (Vector, (!))
+import Data.Function       as X (on)
+import Data.Sequence       as X (Seq)
+import Data.Foldable       as X
+import Data.HashSet        as X (HashSet)
+import Data.HashMap.Strict as X (HashMap)
+import GHC.Generics        as X (Generic)
+import Debug.Trace         as X
+import Control.Exception   as X
+import Data.Hashable       as X
+
+import CSSR.TypeAliases as X
+
+
 import qualified Data.HashMap.Strict as HM
 
-import Control.Monad.ST
-import Lens.Micro.Platform
-import Data.Monoid
-import Data.List hiding (groupBy)
-import Data.Maybe
-import CSSR.TypeAliases
-import Debug.Trace
-import Control.Exception
-import GHC.Generics (Generic)
-import Data.Hashable
 
 groupBy :: forall a b . (Hashable b, Eq b) => (a -> b) -> [a] -> [(b, [a])]
 groupBy fn = HM.toList . foldr step mempty

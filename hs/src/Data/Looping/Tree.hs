@@ -27,7 +27,7 @@ data LLeaf = LLeaf
   }
 
 data LLeafBody = LLeafBody
-  { isLoop    :: Bool
+  { isLoop    :: Maybe LLeaf
   , histories :: HashSet HLeaf
   , frequency :: Vector Integer
   } deriving (Show, Eq, Generic)
