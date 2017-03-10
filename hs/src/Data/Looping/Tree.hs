@@ -189,13 +189,25 @@ groupEdges sig (LoopingTree terms _) = HS.foldr part HS.empty terms
 --     go (a:as)
 --       | Prob.matches ll a sig = Just a
 --       | otherwise = go as
---
--- -- | returns ancestors in order of how they should be processed
--- getAncestors :: LLeaf -> [LLeaf]
--- getAncestors ll = go (Just ll) []
---   where
---     go :: Maybe LLeaf -> [LLeaf] -> [LLeaf]
---     go  Nothing ancestors = ancestors
---     go (Just w) ancestors = go (parent w) (w:ancestors)
+
+excisable :: Double -> LLeaf -> Maybe LLeaf
+excisable sig ll = go $ getAncestors ll
+  where
+    go :: [LLeaf] -> Maybe LLeaf
+    go [] = Nothing
+    go (a:as) =
+      if Prob.matchesDists_ (frequency $ body ll) (frequency $ body a) sig
+      then Just a
+      else go as
+
+-- | returns ancestors in order of how they should be processed
+getAncestors :: LLeaf -> [LLeaf]
+getAncestors ll = go (Just ll) []
+  where
+    go :: Maybe LLeaf -> [LLeaf] -> [LLeaf]
+    go  Nothing ancestors = ancestors
+    go (Just w) ancestors = do
+      go (parent w) (w:ancestors)
+
 
 
