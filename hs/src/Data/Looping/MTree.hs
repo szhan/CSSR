@@ -39,6 +39,7 @@ data MLLeaf s = MLLeaf
 type Loop s = MLLeaf s
 type MLNode s = Either (Loop s) (MLLeaf s)
 
+
 instance Eq (MLLeaf s) where
   ml0 == ml1
     =  undefined -- _parent ml0    == _parent ml1
@@ -60,7 +61,7 @@ freeze_ sig ml = do
   -- FIXME: L.LLeafBody Nothing is false and is only there because i want ghc
   -- to stop yelling at me. We are actually working with a cyclic data structure
   -- so freezing it will take some thought
-  let cur = L.LLeaf (L.LLeafBody Nothing hs f) cs Nothing
+  let cur = L.LLeaf (Right (L.LLeafBody hs f)) cs Nothing
   return $ withChilds cur (HM.map (withParent (Just cur)) cs)
 
   where
@@ -86,36 +87,37 @@ freeze_ sig ml = do
           c <- freeze_ sig lp
           return (e, c)
 
-thaw :: L.LLeaf -> ST s (MLLeaf s)
-thaw ll@(L.LLeaf lb cs p) = do
-  l <- newSTRef (L.isLoop lb)
-  -- FIXME: ditto with freeze -- see above
-  il <- newSTRef Nothing
-  hs <- H.fromList (fmap (,True) . HS.toList . L.histories $ lb)
-  f <- V.thaw (L.frequency lb)
-  cs <- thawDown (HM.toList . L.children $ ll)
-  p <- newSTRef Nothing
-  -- FIXME: ditto with freeze -- see above
-  let cur = MLLeaf hs f cs p
-  H.mapM_ (writeParent cur) cs
-  return cur
-
-  where
-    writeParent :: MLLeaf s -> (Event, MLNode s) -> ST s ()
-    writeParent cur (_, Right c) = writeSTRef (_parent c) (Just cur)
-    writeParent cur _            = return () -- loops are already accounted for
-
-    thawDown :: [(Event, L.LLeaf)] -> ST s (C.HashTable s Event (MLNode s))
-    thawDown cs = do
-      cs' <- traverse heater cs
-      H.fromList cs'
-        where
-          heater :: (Event, L.LLeaf) -> ST s (Event, MLNode s)
-          heater (e, l) = do
-            c <- thaw l
-            -- magical case statement checking if we've seen the frozen
-            -- structure
-            return (e, undefined)
+--thaw :: L.LLeaf -> ST s (MLLeaf s)
+--thaw ll@(L.LLeaf lb cs p) = do
+--  -- FIXME: ditto with freeze -- see above
+--  case lb of
+--    Left -> undefined
+--    Right -> undefined
+--  hs <- H.fromList (fmap (,True) . HS.toList . L.histories $ lb)
+--  f <- V.thaw (L.frequency lb)
+--  cs <- thawDown (HM.toList . L.children $ ll)
+--  p <- newSTRef Nothing
+--  -- FIXME: ditto with freeze -- see above
+--  let cur = MLLeaf hs f cs p
+--  H.mapM_ (writeParent cur) cs
+--  return cur
+--
+--  where
+--    writeParent :: MLLeaf s -> (Event, MLNode s) -> ST s ()
+--    writeParent cur (_, Right c) = writeSTRef (_parent c) (Just cur)
+--    writeParent cur _            = return () -- loops are already accounted for
+--
+--    thawDown :: [(Event, L.LLeaf)] -> ST s (C.HashTable s Event (MLNode s))
+--    thawDown cs = do
+--      cs' <- traverse heater cs
+--      H.fromList cs'
+--        where
+--          heater :: (Event, L.LLeaf) -> ST s (Event, MLNode s)
+--          heater (e, l) = do
+--            c <- thaw l
+--            -- magical case statement checking if we've seen the frozen
+--            -- structure
+--            return (e, undefined)
 
 
 mkLeaf :: Maybe (MLLeaf s) -> [HLeaf] -> ST s (MLLeaf s)

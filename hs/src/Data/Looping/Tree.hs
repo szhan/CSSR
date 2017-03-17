@@ -21,14 +21,13 @@ import Data.CSSR.Leaf.Probabilistic (Probabilistic)
 import qualified Data.CSSR.Leaf.Probabilistic as Prob
 
 data LLeaf = LLeaf
-  { body      :: LLeafBody
+  { body      :: Either LLeaf LLeafBody
   , children  :: HashMap Event LLeaf
   , parent    :: Maybe LLeaf
   }
 
 data LLeafBody = LLeafBody
-  { isLoop    :: Maybe LLeaf
-  , histories :: HashSet HLeaf
+  { histories :: HashSet HLeaf
   , frequency :: Vector Integer
   } deriving (Show, Eq, Generic)
 
@@ -41,10 +40,22 @@ instance Eq LLeaf where
   (LLeaf b0 c0 _) == (LLeaf b1 c1 _) = b0 == b1 && c0 == c1
 
 instance Show LLeaf where
-  show (LLeaf b c _) = "LLeaf{"++ show b ++ ", " ++ show c ++"}"
+  show (LLeaf b c p) =
+    case b of
+      Left (LLeaf b' _ _) ->
+        case b' of
+          Left _                  -> "LLeaf{Loop(<error>), " ++ show c ++"}"
+          Right (LLeafBody hs fs) -> "LLeaf{Loop("++ show hs ++ ", " ++ show fs ++ ", " ++ show c ++ ")}"
+      Right (LLeafBody hs fs) -> "LLeaf{"++ show hs ++ ", " ++ show fs ++ ", " ++ show c ++ "}"
 
 instance Probabilistic LLeaf where
-  frequency = Data.Looping.Tree.frequency . body
+  frequency (LLeaf b c p) =
+    case b of
+      Left (LLeaf b' _ _) -> case b' of
+          Left _                 -> error "should not exist"
+          Right (LLeafBody _ fs) -> fs
+      Right (LLeafBody _ fs) -> fs
+
 
 instance Hashable LLeafBody
 instance Hashable LLeaf where
@@ -191,14 +202,17 @@ groupEdges sig (LoopingTree terms _) = HS.foldr part HS.empty terms
 --       | otherwise = go as
 
 excisable :: Double -> LLeaf -> Maybe LLeaf
-excisable sig ll = go $ getAncestors ll
+excisable sig (LLeaf (Left _) _ _) = Nothing
+excisable sig ll@(LLeaf (Right (LLeafBody hs fs)) _ _) = go $ getAncestors ll
   where
     go :: [LLeaf] -> Maybe LLeaf
     go [] = Nothing
-    go (a:as) =
-      if Prob.matchesDists_ (frequency $ body ll) (frequency $ body a) sig
-      then Just a
-      else go as
+    go (a:as) = case body a of
+      Left _ -> Nothing
+      Right (LLeafBody hs' fs') ->
+        if Prob.matchesDists_ fs fs' sig
+        then Just a
+        else go as
 
 -- | returns ancestors in order of how they should be processed
 getAncestors :: LLeaf -> [LLeaf]
