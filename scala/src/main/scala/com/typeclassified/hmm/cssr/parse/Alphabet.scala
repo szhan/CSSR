@@ -1,11 +1,11 @@
 package com.typeclassified.hmm.cssr.parse
 
 object Alphabet {
-  def apply(alphabetRaw: Array[Char]) = new Alphabet(alphabetRaw)
+  def apply(alphabetRaw: String) = new Alphabet(alphabetRaw)
 }
 
-class Alphabet(alphabetRaw: Array[Char]) {
-  val raw = alphabetRaw.filterNot("\r\n".contains(_))
+class Alphabet(alphabetRaw: String) {
+  val raw = alphabetRaw.filterNot("\r\n".contains(_)).split()
   val map: Map[Char, Int]= raw.zipWithIndex.map { case (c: Char, i: Int) => c -> i }.toMap
   val length = raw.length
 

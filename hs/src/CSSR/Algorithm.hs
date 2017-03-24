@@ -3,12 +3,16 @@
 -- The CSSR Algorithm. This module exemplifies how the components of CSSR
 -- connect together into a cohesive algorithm
 -------------------------------------------------------------------------------
+{-# LANGUAGE ViewPatterns #-}
+
 module CSSR.Algorithm where
 
 import qualified Data.Vector as V
 import qualified Data.Parse.MTree as M
 import Data.Parse.Tree
 import Data.Hist.Tree
+import qualified Data.Parse.MTree as MHist
+import Debug.Trace
 
 
 -------------------------------------------------------------------------------
@@ -20,11 +24,12 @@ import Data.Hist.Tree
 main :: FilePath -> IO ()
 main filepath = do
   contents <- readFile filepath
-  let histTree = initialization 1 contents
+  let histTree = charInitialization 1 contents
+  print histTree
   return ()
 
-initialization :: Int -> String -> HistTree
-initialization depth s = (convert parseTree $ M.getAlphabet parseTree)
+charInitialization :: Int -> String -> HistTree
+charInitialization depth (fmap (:[]) -> s) = (convert parseTree $ M.getAlphabet parseTree)
   where
     parseTree :: ParseTree
     parseTree = M.buildTree depth . V.fromList $ s

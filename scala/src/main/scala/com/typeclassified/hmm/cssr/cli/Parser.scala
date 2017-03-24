@@ -15,6 +15,8 @@ object Parser {
   val lMaxDefault = 5
   val sig         = "sig"
   val sigDefault  = 0.02
+  val delimiter        = "delim"
+  val delimiterDefault = ""
 
   // Output
   val out         = "out"
@@ -41,6 +43,11 @@ object Parser {
       .valueName(file)
       .action { (x, c) => c.copy(dataFile = x) }
       .text(s"Required. The $data file of observed sequence")
+
+    opt[Char](Parser.delimiter.head, Parser.delimiter)
+      .valueName(value)
+      .action { case (x, c) => c.copy(delimiter = x) }
+      .text(s"delimiter for the alphabet. Defaults to an empty string")
 
     opt[Int](Parser.lMax.head, Parser.lMax)
       .valueName(value)

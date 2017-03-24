@@ -114,10 +114,10 @@ object CSSR extends Logging {
     */
   def initialization(config: Config):ParseTree = {
     val alphabetSrc: BufferedSource = Source.fromFile(config.alphabetFile)
-    val alphabetSeq: Array[Char] = try alphabetSrc.mkString.toCharArray finally alphabetSrc.close()
+    val alphabetSeq: Array[String] = try alphabetSrc.mkString.split(config.delimiter) finally alphabetSrc.close()
 
     val dataSrc: BufferedSource = Source.fromFile(config.dataFile)
-    val dataSeq: Array[Char] = try dataSrc.mkString.toCharArray finally dataSrc.close()
+    val dataSeq: Array[String] = try dataSrc.mkString.split(config.delimiter) finally dataSrc.close()
 
     val alphabet = Alphabet(alphabetSeq)
     AlphabetHolder.alphabet = alphabet

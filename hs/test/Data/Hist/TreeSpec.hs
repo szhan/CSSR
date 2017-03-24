@@ -13,19 +13,19 @@ main = hspec spec
 spec :: Spec
 spec = do
   describe "navigate" $ do
-    findsJust ""
-    findsJust "c"
-    findsNothing "a"
-    findsNothing "b"
-    findsJust "cc"
-    findsNothing "ac"
-    findsJust "bc"
+    findsJust [""]
+    findsJust ["c"]
+    findsNothing ["a"]
+    findsNothing ["b"]
+    findsJust ["c","c"]
+    findsNothing ["a","c"]
+    findsJust ["b","c"]
 
   describe "convert" $ do
     it "removes the last children from a Parse Tree" $
-      all (isNothing . navigate tree . V.fromList) ["abc", "bcc"]
+      all (isNothing . navigate tree . V.fromList) $ (fmap.fmap) (:[]) ["abc", "bcc"]
     it "keeps the children of last depth" $
-      all (isJust . navigate tree . V.fromList) ["bc", "cc"]
+      all (isJust . navigate tree . V.fromList) $ (fmap.fmap) (:[]) ["bc", "cc"]
 
   where
     findsJust :: [Event] -> Spec
@@ -44,7 +44,7 @@ spec = do
     findNode path = navigate tree . V.fromList $ path
 
     ptree :: ParseTree
-    ptree = M.buildTree 2 (V.fromList "abcc")
+    ptree = M.buildTree 2 (V.fromList $ (:"") <$> "abcc")
 
     tree :: HistTree
     tree = convert ptree (M.getAlphabet ptree)

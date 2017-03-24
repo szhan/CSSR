@@ -5,6 +5,7 @@ import java.io.File
 case class Config (alphabetFile: File = new File("."),
                    dataFile: File = new File("."),
                    lMax: Int = Parser.lMaxDefault,
+                   delimiter: Char = Parser.delimiterDefault,
                    sig: Double = Parser.sigDefault,
                    stateLabels: Boolean = Parser.stateLabelsDefault,
                    out: Boolean = Parser.outDefault,
@@ -13,6 +14,7 @@ case class Config (alphabetFile: File = new File("."),
   override def toString: String = {
     s"""Current Working Directory: ${System.getProperty("user.dir")}
         |Alphabet file: ${alphabetFile.getPath}
+        |Alphabet delimiter: ${delimiter}
         |Data file: ${dataFile.getPath}
         |History Length: $lMax
         |Multi-line mode: ${false}

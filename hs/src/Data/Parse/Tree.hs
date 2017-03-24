@@ -32,7 +32,7 @@ data PLeaf = PLeaf
   } deriving (Eq)
 
 instance Show PLeaf where
-  show = go 1 ' '
+  show = go 1 " "
     where
       indent :: Int -> String
       indent d = replicate (5 * d) ' '

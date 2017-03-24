@@ -90,7 +90,7 @@ buildMTree n' (V.filter isValid -> cs) = do
       | otherwise          = V.empty -- ^ignore all others
 
 isValid :: Event -> Bool
-isValid e = not . HS.member e . HS.fromList $ ['\r', '\n']
+isValid e = not . HS.member e . HS.fromList $ ["\r", "\n"]
 
 -------------------------------------------------------------------------------
 -- Build a Parse Tree and get Alphabet

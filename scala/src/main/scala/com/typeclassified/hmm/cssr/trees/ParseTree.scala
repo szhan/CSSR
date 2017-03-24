@@ -19,7 +19,7 @@ We then take the 1 child of 10 (=110)
 object ParseTree extends Logging {
   def apply(alphabet: Alphabet) = new ParseTree(alphabet)
 
-  def loadData(tree:ParseTree, xs: Array[Char], n: Int): ParseTree = {
+  def loadData(tree:ParseTree, xs: Array[String], n: Int): ParseTree = {
     val banned = "\r\n".toSet
     // terrible for something we can probably fuse into the following:
     val filteredCharactersCount = xs.count(banned.contains)

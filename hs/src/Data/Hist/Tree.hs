@@ -45,7 +45,7 @@ instance Show HistTree where
   show (HistTree d a r) = "HistTree {depth " ++ show d ++ ", "++ show a ++"}\n  root:" ++ show r
 
 instance Show HLeaf where
-  show = go 1 ' '
+  show = go 1 " "
     where
       indent :: Int -> String
       indent d = replicate (5 * d) ' '

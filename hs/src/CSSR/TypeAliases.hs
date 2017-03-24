@@ -8,7 +8,8 @@ import Data.Hashable
 
 type Locations = HashMap Idx Integer
 type Idx = Integer
-type Event = Char
+type Event = String
+type Delim = String
 type DataFileContents = Vector Event
 
 instance Hashable x => Hashable (Vector x) where
