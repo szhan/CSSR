@@ -30,37 +30,40 @@ type HashTableSet s a = C.HashTable s a Bool
 
 data MLLeaf s = MLLeaf
   -- | for lack of a mutable hash set implementation
-  { _histories :: HashTableSet s HLeaf
-  , _frequency :: MVector s Integer
-  , _children :: C.HashTable s Event (MLNode s)
-  , _parent :: STRef s (Maybe (MLLeaf s))
+  { histories :: HashTableSet s HLeaf
+  , frequency :: MVector s Integer
+  , children :: C.HashTable s Event (MLNode s)
+  , parent :: STRef s (Maybe (MLLeaf s))
   }
 
 type Loop s = MLLeaf s
 type MLNode s = Either (Loop s) (MLLeaf s)
 
+overlaps :: forall s . MLLeaf s -> MLLeaf s -> ST s Bool
+overlaps l0 l1 = do
+    p0 <- readSTRef $ parent l0
+    p1 <- readSTRef $ parent l1
+    return $ mvecEq l0 l1 && p0 == p1
+    where
+      mvecEq = MV.overlaps `on` frequency
 
 instance Eq (MLLeaf s) where
-  ml0 == ml1
-    =  undefined -- _parent ml0    == _parent ml1
+  l0 == l1 = mvecEq l0 l1
+    where
+      mvecEq = MV.overlaps `on` frequency
 
---    && _histories ml0 == _histories ml1
 
 data MLoopingTree s = MLoopingTree
   { _terminals :: HashSet (MLLeaf s)
   , _root :: MLLeaf s
   }
 
-freeze_ :: forall s . Double -> MLLeaf s -> ST s L.LLeaf
-freeze_ sig ml = do
-  --(il :: Maybe (MLLeaf s)) <- readSTRef . _isLoop $ ml
-  hs  <- freezeHistories ml
-  f   <- V.freeze . _frequency $ ml
-  cs' <- H.toList . _children  $ ml
-  cs  <- freezeDown cs'
-  -- FIXME: L.LLeafBody Nothing is false and is only there because i want ghc
-  -- to stop yelling at me. We are actually working with a cyclic data structure
-  -- so freezing it will take some thought
+freeze :: forall s . Double -> MLLeaf s -> ST s L.LLeaf
+freeze sig ml = do
+  hs <- freezeHistories ml
+  f  <- V.freeze . frequency $ ml
+  cs' <- H.toList . children $ ml
+  cs <- freezeDown cs'
   let cur = L.LLeaf (Right (L.LLeafBody hs f)) cs Nothing
   return $ withChilds cur (HM.map (withParent (Just cur)) cs)
 
@@ -72,7 +75,7 @@ freeze_ sig ml = do
     withParent p (L.LLeaf bod cs _) = L.LLeaf bod cs p
 
     freezeHistories :: MLLeaf s -> ST s (HashSet Hist.HLeaf)
-    freezeHistories = fmap (HS.fromList . fmap fst) . H.toList . _histories
+    freezeHistories = fmap (HS.fromList . fmap fst) . H.toList . histories
 
     freezeDown :: [(Event, MLNode s)] -> ST s (HashMap Event L.LLeaf)
     freezeDown cs = do
@@ -81,10 +84,13 @@ freeze_ sig ml = do
       where
         icer :: (Event, MLNode s) -> ST s (Event, L.LLeaf)
         icer (e, Left lp) = do
-          f <- V.freeze (_frequency lp)
-          undefined -- FIXME: get a better way to unfreeze a cyclic data structure
+          f <- V.freeze $ frequency lp
+          hs <- (fmap.fmap) fst $ H.toList (histories lp)
+          c <- freeze sig lp
+          return (e, c)
         icer (e, Right lp) = do
-          c <- freeze_ sig lp
+          c <- freeze sig lp
+          hs <- (fmap.fmap) fst $ H.toList (histories lp)
           return (e, c)
 
 
@@ -110,7 +116,7 @@ walk :: forall s . MLNode s -> Vector Event -> ST s (Maybe (MLNode s))
 walk cur es
   | null es = return $ Just cur
   | otherwise = do
-    f <- H.lookup (_children (reify cur)) (V.head es)
+    f <- H.lookup (children (reify cur)) (V.head es)
     case f of
       Nothing -> return Nothing
       Just nxt -> walk nxt (V.tail es)
@@ -148,7 +154,6 @@ grow sig (HistTree _ a hRoot) = do
   go (S.singleton rt) ts
   return rt
   where
-
     go :: Seq (MLLeaf s) -> STRef s [MLLeaf s] -> ST s ()
     go queue termsRef             -- ^ DEQUEUE first looping node from the queue
       | S.null queue = return ()
@@ -165,7 +170,7 @@ grow sig (HistTree _ a hRoot) = do
             x' <- findLoops x
             return (e, x')) cs'
 
-          forM_ cs (\(e, x) -> H.insert (_children active) e x)
+          forM_ cs (\(e, x) -> H.insert (children active) e x)
           writeSTRef termsRef (cs'' <> delete active terms)
           --   ADD all new looping nodes to children of active (mapped by symbol)
           --   ADD unexcisable children to queue (FIXME: what about edgesets?)
@@ -189,7 +194,7 @@ grow sig (HistTree _ a hRoot) = do
         --    observation in dataset).
         nextChilds :: ST s [(Event, MLLeaf s)]
         nextChilds = do
-          hs <- (fmap.fmap) fst . H.toList . _histories $ active
+          hs <- (fmap.fmap) fst . H.toList . histories $ active
           traverse (\(e, _hs) -> (e,) <$> mkLeaf (Just active) _hs) $ groupHistory hs
 
         groupHistory :: [HLeaf] -> [(Event, [HLeaf])]
@@ -228,7 +233,7 @@ grow sig (HistTree _ a hRoot) = do
 --
 --      where
 --        termFreq :: ST s (Vector Integer)
---        termFreq = GV.basicUnsafeFreeze (_frequency term)
+--        termFreq = GV.basicUnsafeFreeze (frequency term)
 --
 --        updateGroup :: EdgeGroup s
 --                    -> HashSet (EdgeGroup s)
@@ -251,7 +256,7 @@ grow sig (HistTree _ a hRoot) = do
 --                   -> Maybe (EdgeGroup s) -> ST s (Maybe (EdgeGroup s))
 --        matchEdges _  g@(Just _) = return g
 --        matchEdges g@(f, _) Nothing = do
---          matched <- Prob.unsafeMatch (_frequency term) f sig
+--          matched <- Prob.unsafeMatch (frequency term) f sig
 --          return (if matched then Just g else Nothing)
 
 
@@ -277,7 +282,7 @@ isHomogeneous sig ll = do
     allPChilds :: ST s (HashSet HLeaf)
     allPChilds = do
       let hs :: ST s [(HLeaf, Bool)]
-          hs = H.toList (_histories ll)
+          hs = H.toList (histories ll)
       kvs <- hs
       let
         cs :: [HLeaf]
@@ -287,7 +292,7 @@ isHomogeneous sig ll = do
     step :: HLeaf -> Bool -> ST s Bool
     step _  False = return False
     step pc _     =
-      Prob.unsafeMatch (_frequency ll) (Prob.frequency pc) sig
+      Prob.unsafeMatch (frequency ll) (Prob.frequency pc) sig
 
 -- | === Excisability
 -- Psuedocode from paper:
@@ -302,14 +307,14 @@ isHomogeneous sig ll = do
 --     ELSE do nothing
 --     ENDIF
 --   ENDFOR
-
+--
 excisable :: forall s . Double -> MLLeaf s -> ST s (Maybe (MLLeaf s))
 excisable sig ll = getAncestors ll >>= go
   where
     go :: [MLLeaf s] -> ST s (Maybe (MLLeaf s))
     go [] = return Nothing
     go (a:as) = do
-      isMatch <- Prob.unsafeMatch_ (_frequency ll) (_frequency a) sig
+      isMatch <- Prob.unsafeMatch_ (frequency ll) (frequency a) sig
       if isMatch
       then return (Just a)
       else go as
@@ -321,7 +326,7 @@ getAncestors ll = go (Just ll) []
     go :: Maybe (MLLeaf s) -> [MLLeaf s] -> ST s [MLLeaf s]
     go  Nothing ancestors = return ancestors
     go (Just w) ancestors = do
-      p <- readSTRef (_parent w)
+      p <- readSTRef (parent w)
       go p (w:ancestors)
 
 
