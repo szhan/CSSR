@@ -1,5 +1,6 @@
 package com.typeclassified.hmm.cssr.trees
 
+import com.typeclassified.hmm.cssr.Aliases.Event
 import com.typeclassified.hmm.cssr.shared.{Epsilon, Probablistic}
 
 import scala.collection.mutable.ListBuffer
@@ -67,10 +68,10 @@ abstract class Tree[L <: Leaf[L] : ClassTag ] (val root:L) {
   }
 }
 
-abstract class Leaf[B <: Leaf[B]] (val observation:Char, val parent: Option[B] = None) extends Probablistic {
-  def path():Iterable[Char] = Tree.getAncestorsRecursive(this.asInstanceOf[B]).map(_.observation).filterNot(_ == '\0')
+abstract class Leaf[B <: Leaf[B]] (val observation:Event, val parent: Option[B] = None) extends Probablistic {
+  def path():Iterable[Event] = Tree.getAncestorsRecursive(this.asInstanceOf[B]).map(_.observation).filterNot(_ == "")
 
   def getChildren():Iterable[B]
 
-  def next(c:Char):Option[B]
+  def next(c:Event):Option[B]
 }

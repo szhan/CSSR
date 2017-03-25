@@ -3,6 +3,7 @@ package com.typeclassified.hmm.cssr.measure.out
 import java.io._
 
 import _root_.com.typeclassified.hmm.cssr.cli.Config
+import com.typeclassified.hmm.cssr.Aliases.Event
 import com.typeclassified.hmm.cssr.CSSR.TransitionState
 import com.typeclassified.hmm.cssr.parse.Alphabet
 import com.typeclassified.hmm.cssr.state.{AllStates, Machine}
@@ -46,14 +47,14 @@ class Results ( val config: Config,
     .zipWithIndex
     .map {
       case (state, i) =>
-        val sTransitions:Map[Char, TransitionState] = allStates.transitionMap(state)
+        val sTransitions:Map[Event, TransitionState] = allStates.transitionMap(state)
         state.distribution
           .toArray
           .view.zipWithIndex
           .foldLeft[String]("") {
           case (memo, (prob, k)) if prob <= 0 => memo
           case (memo, (prob, k)) =>
-            val symbol:Char = alphabet.raw(k)
+            val symbol:Event = alphabet.raw(k)
             sTransitions(symbol) match {
               case None => memo
               case Some(transition) =>
@@ -85,7 +86,7 @@ class Results ( val config: Config,
           .map{ case (c, s) => c -> s.flatMap{ s=> Option("State " + idxAsStr(allStates.stateMap(s)))} }
 
         s"State ${idxAsStr(i)}:\n" +
-          eqClass.histories.toArray.sortBy(_.observed).map{_.toString}.mkString("\n") +
+          eqClass.histories.toArray.sortBy(_.observed.mkString("")).map{_.toString}.mkString("\n") +
           s"""
              |Probability Dist: ${eqClass.distribution.toString()}
              |  Frequency Dist: ${eqClass.frequency.toString()}

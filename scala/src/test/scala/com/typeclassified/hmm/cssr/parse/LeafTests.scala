@@ -11,7 +11,7 @@ class LeafTests extends FlatSpec with Matchers with ProbablisticAsserts with Lea
   var tree:ParseTree = null
 
   before {
-    AlphabetHolder.alphabet = Alphabet("abc".toCharArray)
+    AlphabetHolder.alphabet = Alphabet("abc", "")
     tree = ParseTree(AlphabetHolder.alphabet)
   }
 

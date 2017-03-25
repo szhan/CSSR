@@ -1,8 +1,9 @@
 package com.typeclassified.hmm.cssr.trees
 
 import breeze.linalg.DenseVector
+import com.typeclassified.hmm.cssr.Aliases.Event
 import com.typeclassified.hmm.cssr.CSSR.Terminal
-import com.typeclassified.hmm.cssr.parse.{AlphabetHolder, Alphabet}
+import com.typeclassified.hmm.cssr.parse.{Alphabet, AlphabetHolder}
 import com.typeclassified.hmm.cssr.shared.EmpiricalDistribution
 
 import scala.collection.immutable.HashSet
@@ -15,10 +16,10 @@ object LoopingTree {
 
   def homogeneous(allHistories:ListBuffer[ParseLeaf], w:ParseLeaf): Boolean = allHistories.forall { pw => Tree.matches(w)(pw) }
 
-  def allExcisable(tree:ParseTree)(w:ParseLeaf, e:String):Boolean = excisable(tree, allPrefixes(tree, w))(w, e)
-  def nextExcisable(tree:ParseTree)(w:ParseLeaf, e:String):Boolean = excisable(tree, nextPrefixes(tree, w))(w, e)
+  def allExcisable(tree:ParseTree)(w:ParseLeaf, e:List[Event]):Boolean = excisable(tree, allPrefixes(tree, w))(w, e)
+  def nextExcisable(tree:ParseTree)(w:ParseLeaf, e:List[Event]):Boolean = excisable(tree, nextPrefixes(tree, w))(w, e)
 
-  def excisable(tree:ParseTree, uews: ListBuffer[ParseLeaf])(w:ParseLeaf, e:String):Boolean = {
+  def excisable(tree:ParseTree, uews: ListBuffer[ParseLeaf])(w:ParseLeaf, e:List[Event]):Boolean = {
     excise(tree, uews)(w, e)
       .forall {
         case (uew, Some(uw)) => Tree.matches(uew)(uw)
@@ -27,24 +28,24 @@ object LoopingTree {
       }
   }
 
-  def excise(tree:ParseTree, uews: ListBuffer[ParseLeaf])(w:ParseLeaf, e:String):ListBuffer[(ParseLeaf, Option[ParseLeaf])] = {
-    val exciseStr:(String)=>String = (uew) => uew.take(uew.length - e.length - w.observed.length) + w
+  def excise(tree:ParseTree, uews: ListBuffer[ParseLeaf])(w:ParseLeaf, e:List[Event]):ListBuffer[(ParseLeaf, Option[ParseLeaf])] = {
+    //val exciseStr:(List[Event])=>List[Event] = (uew) => excise(w.observed, e)(uew) // uew.take(uew.length - e.length - w.observed.length) + w
 
     uews
-      .map { uew => (uew, exciseStr(uew.observed)) }
+      .map { uew => (uew, excise(w.observed, e)(uew.observed)) }
       .map { case (uew, uwStr) => (uew, tree.navigateHistoryRev(uwStr)) }
   }
 
   /**
     * A more "pure" form of excising: given some history {@code uew} with excisable {@code uew}, return {@code uw}.
     */
-  protected def excise(w:String, e:String)(uew: String):String = uew.take(uew.length - e.length - w.length) + w
+  protected def excise(w:List[Event], e:List[Event])(uew: List[Event]):List[Event] = uew.take(uew.length - e.length - w.length) ++ w
 
   /**
     * Get all prefixed histories from the parsetree for a given depth. For example, given the history "1" and a prefix
     * depth of 2, we get leaves: 1, 01, 11.
     */
-  def prefixes(tree: ParseTree, w:String, prefixDepth:Int):ListBuffer[ParseLeaf] = {
+  def prefixes(tree: ParseTree, w:List[Event], prefixDepth:Int):ListBuffer[ParseLeaf] = {
     val histories = (w.length to prefixDepth)
       .flatMap { n => tree.getDepth(n) }
       .to[ListBuffer]
@@ -53,12 +54,12 @@ object LoopingTree {
   }
 
   def nextPrefixes(tree: ParseTree, w:ParseLeaf):ListBuffer[ParseLeaf] = nextPrefixes(tree, w.observed)
-  def nextPrefixes(tree: ParseTree, w:String):ListBuffer[ParseLeaf] = prefixes(tree, w, w.length+1)
+  def nextPrefixes(tree: ParseTree, w:List[Event]):ListBuffer[ParseLeaf] = prefixes(tree, w, w.length+1)
 
   def allPrefixes(tree: ParseTree, w:ParseLeaf):ListBuffer[ParseLeaf] = allPrefixes(tree, w.observed)
-  def allPrefixes(tree: ParseTree, w:String):ListBuffer[ParseLeaf] = prefixes(tree, w, tree.maxLength)
+  def allPrefixes(tree: ParseTree, w:List[Event]):ListBuffer[ParseLeaf] = prefixes(tree, w, tree.maxLength)
 
-  def leafChildren(lleaves:Iterable[(Char, Node)]):Iterable[LLeaf] = lleaves.toMap.values.foldLeft(List[LLeaf]()){
+  def leafChildren(lleaves:Iterable[(Event, Node)]):Iterable[LLeaf] = lleaves.toMap.values.foldLeft(List[LLeaf]()){
     case (list, Left(a)) => list :+ a
     case (list, Right(a)) => a match {
       case Left(_) => list
@@ -66,13 +67,13 @@ object LoopingTree {
     }
   }
 
-  def lleafChildren(lleaves:Iterable[(Char, Node)]):Iterable[LLeaf] = lleaves.toMap.values.foldLeft(List[LLeaf]()){
+  def lleafChildren(lleaves:Iterable[(Event, Node)]):Iterable[LLeaf] = lleaves.toMap.values.foldLeft(List[LLeaf]()){
     case (list, Left(a)) => list :+ a
     case (list, Right(Left(l))) => list :+ l
     case (list, Right(Right(e))) => list :+ e.value
   }
 
-  // FIXME: Make all looping nodes data LLeaf = LLeaf { histories::[String] {-which will handle loops-}, children::[LLeaf], isEdge :: Boolean }
+  // FIXME: Make all looping nodes data LLeaf = LLeaf { histories::[List[Event]] {-which will handle loops-}, children::[LLeaf], isEdge :: Boolean }
   type AltNode = Either[Loop, EdgeSet]
   type Node = Either[LLeaf, AltNode]
 
@@ -113,10 +114,10 @@ class LoopingTree(val alphabet:Alphabet, root:LLeaf) extends Tree[LLeaf](root) {
     terminals = terminals + root
   }
 
-  def navigateLoopingTree(history:String):Option[LLeaf] = {
-    def go(history:String, active:Option[LoopingTree.Node], terminals: Option[Set[Terminal]]):Option[LLeaf] = {
-      val current: String => Char = _.last
-      val prior: String => String = _.init
+  def navigateLoopingTree(history:List[Event]):Option[LLeaf] = {
+    def go(history:List[Event], active:Option[LoopingTree.Node], terminals: Option[Set[Terminal]]):Option[LLeaf] = {
+      val current: List[Event] => Event = _.last
+      val prior: List[Event] => List[Event] = _.init
       val activeLeaf = active.flatMap { node => Option(LoopingTree.getLeaf(node)) }
       val nextNode = activeLeaf.flatMap { leaf => if (history.isEmpty) None else leaf.nextLeaf(current(history)) }
 
@@ -136,12 +137,12 @@ class LoopingTree(val alphabet:Alphabet, root:LLeaf) extends Tree[LLeaf](root) {
     go(history, Some(Left(root)), Option(terminals))
   }
 
-  def navigateToLLeafButStopAtLoops(history: String, terminals:Set[Terminal]):Option[LLeaf] = {
+  def navigateToLLeafButStopAtLoops(history: List[Event], terminals:Set[Terminal]):Option[LLeaf] = {
     //print("navigating to LLeaf but stopping at loops and terms: " + history)
     navigateToLLeafButStopAtLoops(history, Some(Left(root)), _.last, _.init, Option(terminals))
   }
 
-  def navigateToLLeafButStopAtLoops(history: String):Option[LLeaf] = {
+  def navigateToLLeafButStopAtLoops(history: List[Event]):Option[LLeaf] = {
     //print(s"navigating to LLeaf but stopping at loops: " + history)
     navigateToLLeafButStopAtLoops(history, Some(Left(root)), _.last, _.init, None)
   }
@@ -160,7 +161,7 @@ class LoopingTree(val alphabet:Alphabet, root:LLeaf) extends Tree[LLeaf](root) {
 
   def isTerminal(terminals:Set[Terminal])(lleaf:LLeaf):Boolean = terminals.nonEmpty && terminals.contains(lleaf)
 
-  def navigateToLLeafButStopAtLoops(history: String, active:Option[LoopingTree.Node], current:(String)=>Char, prior:(String)=>String, terminals:Option[Set[Terminal]]): Option[LLeaf] = {
+  def navigateToLLeafButStopAtLoops(history: List[Event], active:Option[LoopingTree.Node], current:(List[Event])=>Event, prior:(List[Event])=>List[Event], terminals:Option[Set[Terminal]]): Option[LLeaf] = {
     val isTerminalPredicate = isTerminal(terminals)(_)
     val nextLeaf = active.flatMap { node => Option(LoopingTree.getLeaf(node)) }
     val nextNode = nextLeaf.flatMap { leaf => if (history.isEmpty) None else leaf.nextLeaf(current(history)) }
@@ -177,19 +178,19 @@ class LoopingTree(val alphabet:Alphabet, root:LLeaf) extends Tree[LLeaf](root) {
 
       val result:Option[LLeaf] = if (nextNodeIsTerminal) nextNode.map{LoopingTree.getLeaf} else possibleloopOrLeaf
 
-      //println(": " + result.toString)
+      //println(": " + result.toList[Event])
       result
     } else {
       navigateToLLeafButStopAtLoops(prior(history), nextNode, current, prior, terminals)
     }
   }
 
-  def navigateToTerminal(history: String, terminals:Set[Terminal]): Option[LLeaf] = {
+  def navigateToTerminal(history: List[Event], terminals:Set[Terminal]): Option[LLeaf] = {
     //print("navigating TERMINAL: " + history)
     navigateToTerminal(history, Some(Left(root)), _.last, _.init, terminals)
   }
 
-  def navigateToTerminal(history: String, active:Option[LoopingTree.Node], current:(String)=>Char, prior:(String)=>String, terminals:Set[Terminal]): Option[LLeaf] = {
+  def navigateToTerminal(history: List[Event], active:Option[LoopingTree.Node], current:(List[Event])=>Event, prior:(List[Event])=>List[Event], terminals:Set[Terminal]): Option[LLeaf] = {
 
     val maybeLLeaf = navigateToLLeafButStopAtLoops(history, active, current, prior, Some(terminals))
 
@@ -213,7 +214,7 @@ abstract class LoopWrapper(val value:LLeaf) {
   override def toString: String = getClass.getSimpleName + "(" + value.toString() + ")"
 }
 
-class Loop(val value: LLeaf, observed:String, seededHistories:Set[ParseLeaf] = Set(), parent:Option[LLeaf] = None) extends LLeaf(observed, seededHistories, parent) {
+class Loop(val value: LLeaf, observed:List[Event], seededHistories:Set[ParseLeaf] = Set(), parent:Option[LLeaf] = None) extends LLeaf(observed, seededHistories, parent) {
   def this(value:LLeaf, origin:LLeaf) = this(value, origin.observed, origin.histories, origin.parent)
 
   var asTerminal:Option[LLeaf] = None
@@ -225,11 +226,11 @@ class EdgeSet (edge: LLeaf, val edges:Set[LLeaf]) extends LoopWrapper(edge) {
   edge.isEdge = true
 }
 
-class LLeaf(val observed:String, seededHistories:Set[ParseLeaf] = Set(), parent:Option[LLeaf] = None) extends Leaf[LLeaf] (if ("".equals(observed)) 0.toChar else observed.head, parent) with EmpiricalDistribution {
+class LLeaf(val observed:List[Event], seededHistories:Set[ParseLeaf] = Set(), parent:Option[LLeaf] = None) extends Leaf[LLeaf] (observed.head, parent) with EmpiricalDistribution {
   histories = seededHistories
   recalculateHists(histories)
 
-  var children:mutable.Map[Char, LoopingTree.Node] = mutable.Map()
+  var children:mutable.Map[Event, LoopingTree.Node] = mutable.Map()
 
   var edgeSet:Option[mutable.Set[LLeaf]] = None
 
@@ -239,10 +240,10 @@ class LLeaf(val observed:String, seededHistories:Set[ParseLeaf] = Set(), parent:
 
   override def getChildren():Iterable[LLeaf] = LoopingTree.lleafChildren(children)
 
-  def nextLeaf(c: Char): Option[LoopingTree.Node] = children.get(c)
+  def nextLeaf(c: Event): Option[LoopingTree.Node] = children.get(c)
 
   // this pretty much duplicates LoopingTree.getLeaf
-  override def next(c: Char): Option[LLeaf] = children.get(c).flatMap { node => Some(LoopingTree.getLeaf(node)) }
+  override def next(c: Event): Option[LLeaf] = children.get(c).flatMap { node => Some(LoopingTree.getLeaf(node)) }
 
   override def toString:String = {
     val rDist = rounded.toArray.mkString("[", ",", "]")

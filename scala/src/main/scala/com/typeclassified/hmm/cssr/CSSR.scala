@@ -1,5 +1,6 @@
 package com.typeclassified.hmm.cssr
 
+import com.typeclassified.hmm.cssr.Aliases.Event
 import com.typeclassified.hmm.cssr.cli.Config
 import com.typeclassified.hmm.cssr.measure.out.Results
 import com.typeclassified.hmm.cssr.shared.Epsilon
@@ -19,7 +20,7 @@ object CSSR extends Logging {
   type ParentState = State
   type TransitionState = Option[State]
 
-  type StateToStateTransitions = Map[ParentState, Map[Char, TransitionState]]
+  type StateToStateTransitions = Map[ParentState, Map[Event, TransitionState]]
 
   def run(config: Config):Results  = {
     implicit val ep:Epsilon = new Epsilon(0.01)
@@ -83,8 +84,8 @@ object CSSR extends Logging {
     (allStates, transitions, stateMap)
   }
 
-  def pathToState(ltree: LoopingTree, terminal: Terminal, char: Char, stateMap:Map[Terminal, State]): Option[State] = {
-    val wa = terminal.path().mkString + char
+  def pathToState(ltree: LoopingTree, terminal: Terminal, evt: Event, stateMap:Map[Terminal, State]): Option[State] = {
+    val wa = terminal.path().toList :+ evt
     if (terminal.distribution(ltree.alphabet.map(wa.last)) == 0) None else {
       ltree
         .navigateToTerminal(wa, ltree.terminals)
@@ -93,9 +94,9 @@ object CSSR extends Logging {
   }
 
   def mapTransitions(ltree:LoopingTree, stateMap: Map[Terminal, State]):StateToStateTransitions = {
-    val mappings: Map[State, Map[Char, Option[State]]] = stateMap.toArray
+    val mappings: Map[State, Map[Event, Option[State]]] = stateMap.toArray
       .map{ case (tNode, state) => {
-        val tStates:Map[Char, Option[State]] = ltree
+        val tStates:Map[Event, Option[State]] = ltree
           .alphabet
           .raw
           .map { a => a -> pathToState(ltree, tNode, a, stateMap) }
@@ -114,14 +115,14 @@ object CSSR extends Logging {
     */
   def initialization(config: Config):ParseTree = {
     val alphabetSrc: BufferedSource = Source.fromFile(config.alphabetFile)
-    val alphabetSeq: Array[String] = try alphabetSrc.mkString.split(config.delimiter) finally alphabetSrc.close()
+    val alphabetSeq: String = try alphabetSrc.mkString finally alphabetSrc.close()
 
     val dataSrc: BufferedSource = Source.fromFile(config.dataFile)
-    val dataSeq: Array[String] = try dataSrc.mkString.split(config.delimiter) finally dataSrc.close()
+    val dataSeq: String = try dataSrc.mkString finally dataSrc.close()
 
-    val alphabet = Alphabet(alphabetSeq)
+    val alphabet = Alphabet(alphabetSeq, config.delimiter+"")
     AlphabetHolder.alphabet = alphabet
-    val parseTree = ParseTree.loadData(ParseTree(alphabet), dataSeq, config.lMax)
+    val parseTree = ParseTree.loadData(ParseTree(alphabet), dataSeq, config.delimiter, config.lMax)
 
     parseTree
   }
@@ -197,11 +198,11 @@ object CSSR extends Logging {
         debug("we've hit our base case")
       } else {
 
-        val nextChildren:Map[Char, LoopingTree.Node] = active.histories
+        val nextChildren:Map[Event, LoopingTree.Node] = active.histories
           .flatMap { _.children }
           .groupBy{ _.observation }
           .map { case (c, pleaves) => {
-            val lleaf:LLeaf = new LLeaf(c + active.observed, pleaves, Option(active))
+            val lleaf:LLeaf = new LLeaf(c +: active.observed, pleaves, Option(active))
             val alternative:Option[LoopingTree.AltNode] = findAlternative(lleaf)
             c -> alternative.toRight(lleaf)
           } }
@@ -262,10 +263,10 @@ object CSSR extends Logging {
   type Terminal = LLeaf
 
   def stepFromTerminal(ltree: LoopingTree)(terminal: Terminal):Array[(Terminal, Option[LLeaf])] = {
-    val w = terminal.path().mkString
+    val w = terminal.path().toList
     val alphabet = ltree.alphabet.raw
 
-    def navigateToNext(alphaIdx:Int) = ltree.navigateLoopingTree(w + alphabet(alphaIdx))
+    def navigateToNext(alphaIdx:Int) = ltree.navigateLoopingTree(w :+ alphabet(alphaIdx))
     val paths = mutable.ArrayBuffer[(Terminal, Option[LLeaf])]()
 
     for ((i, p) <- terminal.distribution.activeIterator) {
@@ -348,7 +349,7 @@ object CSSR extends Logging {
       val toMerge = transitionGroups
         .flatMap {
           tSet => {
-            val (head:Terminal, tail:List[Terminal]) = unsafeHeadAnd(tSet.toList.sortBy(_.observed))
+            val (head:Terminal, tail:List[Terminal]) = unsafeHeadAnd(tSet.toList.sortBy(_.observed.mkString(ltree.alphabet.delim)))
             val newSet = mutable.Set(head)
             head.edgeSet = Some(newSet)
 
@@ -382,7 +383,7 @@ object CSSR extends Logging {
         .foreach {
           set:Set[Terminal] =>
             // holy moly we need to turn this into a dag and not a cyclic-linked-list-tree
-            val (head:Terminal, tail:List[Terminal]) = unsafeHeadAnd(set.filter{_.parent.nonEmpty}.toList.sortBy(_.observed))
+            val (head:Terminal, tail:List[Terminal]) = unsafeHeadAnd(set.filter{_.parent.nonEmpty}.toList.sortBy(_.observed.mkString(ltree.alphabet.delim)))
             tail.foreach {
               node =>
                 node.parent.get.children.put(node.observation, Left(head))
@@ -403,7 +404,7 @@ object CSSR extends Logging {
 
     collectables
       .foreach { pLeaf => {
-        val maybeLLeaf = ltree.navigateToTerminal(pLeaf.observed.toString, states.flatMap(_.terminals).toSet)
+        val maybeLLeaf = ltree.navigateToTerminal(pLeaf.observed, states.flatMap(_.terminals).toSet)
         val maybeState = maybeLLeaf.flatMap { terminal => stateMap.get(terminal) }
 
         maybeState.foreach { state => state.addHistory(pLeaf) }

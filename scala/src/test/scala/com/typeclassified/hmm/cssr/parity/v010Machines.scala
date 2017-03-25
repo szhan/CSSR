@@ -18,7 +18,7 @@ class v010Machines extends FunSuite with Matchers with FileHandlers{
 
   test("the even process") {
     val data = dataFile("even-process", "EP")
-    val config = new Config(binaryAlphabet, data, 4, DEFAULT_SIG)
+    val config = new Config(binaryAlphabet, data, 4, "", DEFAULT_SIG)
     val results = CSSR.run(config)
 
     results.machine.relativeEntropy === 0.000105397d
@@ -31,7 +31,7 @@ class v010Machines extends FunSuite with Matchers with FileHandlers{
 
   test("Misiurewics") {
     val data = dataFile("misiurewicz", "Misiurewicz")
-    val config = new Config(binaryAlphabet, data, 4, DEFAULT_SIG)
+    val config = new Config(binaryAlphabet, data, 4, "", DEFAULT_SIG)
     val results = CSSR.run(config)
 
     results.machine.relativeEntropy === 0d
@@ -44,7 +44,7 @@ class v010Machines extends FunSuite with Matchers with FileHandlers{
 
   test("Foulkes") {
     val data = dataFile("foulkes", "Foulkes")
-    val config = new Config(binaryAlphabet, data, 4, 0.01)
+    val config = new Config(binaryAlphabet, data, 4, "", 0.01)
     val results = CSSR.run(config)
 
     results.machine.relativeEntropy === 0d

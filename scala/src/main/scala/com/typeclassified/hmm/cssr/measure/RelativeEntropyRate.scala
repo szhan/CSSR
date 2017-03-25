@@ -49,7 +49,7 @@ object RelativeEntropyRate extends MathUtils with Logging {
     if (relEntRateHistTotal < 0) 0 else relEntRateHistTotal * histProbability
   }
 
-  protected def relEntropyRateByNextAlphabet(history:String, inferredProb:Double, tree:ParseTree, allStates: AllStates, histFreqByAlpha:Double, alpha:Char)
+  protected def relEntropyRateByNextAlphabet(history:List[String], inferredProb:Double, tree:ParseTree, allStates: AllStates, histFreqByAlpha:Double, alpha:String)
   :(Double, Double) = {
     val isValid:Boolean = histFreqByAlpha > 0 && inferredProb > 0
     val isADisaster:Boolean = histFreqByAlpha > 0 && inferredProb <= 0
@@ -59,7 +59,7 @@ object RelativeEntropyRate extends MathUtils with Logging {
       error("Something disastrous just happened")
     }
 
-    val childStringProb = InferProbabilities.inferredHistory(alpha + history, tree, allStates)
+    val childStringProb = InferProbabilities.inferredHistory(alpha +: history, tree, allStates)
     // eliminate branching? depends on scala's ln behavior as well as how it treats infinities
     val inferredRatio:Double = if (isValid) childStringProb / inferredProb else 0
     val relEntRateAlpha:Double = if (isValid) discreteEntropy(histFreqByAlpha, inferredRatio) else 0

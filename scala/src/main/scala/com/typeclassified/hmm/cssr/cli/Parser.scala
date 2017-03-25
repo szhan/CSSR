@@ -44,7 +44,7 @@ object Parser {
       .action { (x, c) => c.copy(dataFile = x) }
       .text(s"Required. The $data file of observed sequence")
 
-    opt[Char](Parser.delimiter.head, Parser.delimiter)
+    opt[String](Parser.delimiter.head, Parser.delimiter)
       .valueName(value)
       .action { case (x, c) => c.copy(delimiter = x) }
       .text(s"delimiter for the alphabet. Defaults to an empty string")
@@ -61,7 +61,7 @@ object Parser {
       .validate { x => if (x > 0 && x < 1) success else failure(s"Value <$sig> must be > 0 && < 1") }
       .text(s"$sig is the significance level used for hypothesis testing. Defaults to $sigDefault")
 
-    opt[Unit](Parser.stateLabels.head, Parser.stateLabels)
+    opt[Unit](Parser.stateLabels)
       .action { (_,c) => c.copy(stateLabels = true) }
       .text(s"$stateLabels will flag whether or not states will be alphabetically labelled. Defaults to $outDefault")
 

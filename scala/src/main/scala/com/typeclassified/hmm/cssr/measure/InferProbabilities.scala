@@ -1,5 +1,6 @@
 package com.typeclassified.hmm.cssr.measure
 
+import com.typeclassified.hmm.cssr.Aliases.Event
 import com.typeclassified.hmm.cssr.state.AllStates
 import com.typeclassified.hmm.cssr.trees.{ParseLeaf, ParseTree}
 import com.typeclassified.hmm.cssr.shared.{Level, Logging}
@@ -27,7 +28,7 @@ object InferProbabilities extends Logging {
   /**
     * calculates the probability of a single, raw history (in string form) based on a given allStates and alphabet
     */
-  def inferredHistory(history:String, tree: ParseTree, allStates: AllStates): Double = {
+  def inferredHistory(history:List[Event], tree: ParseTree, allStates: AllStates): Double = {
     // FIXME: this would be perfect to replace with a state monad
     info("Generating Inferred probabilities from State Machine")
 

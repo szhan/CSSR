@@ -11,8 +11,8 @@ class TreeScenario extends WordSpec with Matchers with ProbablisticAsserts with 
   val (  _1110,  _1101,  _1011,  _0111 ) = (  "1110",  "1101",  "1011",  "0111" )
   val ( _01110, _11101, _11011, _10111 ) = ( "01110", "11101", "11011", "10111" )
 
-  AlphabetHolder.alphabet = Alphabet(_01.toCharArray)
-  var tree:ParseTree = ParseTree.loadData(ParseTree(AlphabetHolder.alphabet), (_1101 * 9).toCharArray, 5)
+  AlphabetHolder.alphabet = Alphabet(_01, "")
+  var tree:ParseTree = ParseTree.loadData(ParseTree(AlphabetHolder.alphabet), (_1101 * 9), "", 5)
 
   "loading the data" when {
     val node_____r = tree.root
@@ -24,7 +24,7 @@ class TreeScenario extends WordSpec with Matchers with ProbablisticAsserts with 
     "examining the root layer" should {
       // FIXME: The root layer does _NOT_ have the correct expected distribution. This is a bug, but is required to prove parity.
 //      "have correct frequency and distributions" in assertProbabalisticDetails(node_____r, Array(9, 27))
-      "have expected leaf properties" in assertChildrenByExactBatch(layer1, Array(_0, _1))
+      "have expected leaf properties" in assertChildrenByExactBatch(layer1, asEvents(_0, _1))
     }
 
     "examining the 1st layer" should {
@@ -41,23 +41,23 @@ class TreeScenario extends WordSpec with Matchers with ProbablisticAsserts with 
         assertProbabalisticDetails(node____1r.get, Array(9, 17))
       }
       "have expected leaf properties" in {
-        assertChildrenByExactBatch(node____0r.get.children, Array(_10))
-        assertChildrenByExactBatch(node____1r.get.children, Array(_11,_01))
+        assertChildrenByExactBatch(node____0r.get.children, List(asEvents(_10)))
+        assertChildrenByExactBatch(node____1r.get.children, asEvents(_11,_01))
       }
     }
     val layer2     = layer1.flatMap(_.children)
-    val node___10r = layer2.find(_.observed == _10)
-    val node___11r = layer2.find(_.observed == _11)
-    val node___01r = layer2.find(_.observed == _01)
+    val node___10r = layer2.find(_.observed == asEvents(_10))
+    val node___11r = layer2.find(_.observed == asEvents(_11))
+    val node___01r = layer2.find(_.observed == asEvents(_01))
 
     "examining the 2nd layer" should {
       "have the correct children" in {
         node___10r should not be empty
         node___11r should not be empty
         node___01r should not be empty
-        assertLeafProperties(node___10r.get, _10)
-        assertLeafProperties(node___11r.get, _11)
-        assertLeafProperties(node___01r.get, _01)
+        assertLeafProperties(node___10r.get, asEvents(_10))
+        assertLeafProperties(node___11r.get, asEvents(_11))
+        assertLeafProperties(node___01r.get, asEvents(_01))
 
         val expected = Array(node___10r.get, node___11r.get, node___01r.get)
 
@@ -70,9 +70,9 @@ class TreeScenario extends WordSpec with Matchers with ProbablisticAsserts with 
         assertProbabalisticDetails(node___01r.get, Array(0, 9))
       }
       "have expected leaf properties" in {
-        assertChildrenByExactBatch(node___10r.get.children, Array(_110))
-        assertChildrenByExactBatch(node___11r.get.children, Array(_011,_111))
-        assertChildrenByExactBatch(node___01r.get.children, Array(_101))
+        assertChildrenByExactBatch(node___10r.get.children, List(asEvents(_110)))
+        assertChildrenByExactBatch(node___11r.get.children, asEvents(_011,_111))
+        assertChildrenByExactBatch(node___01r.get.children, List(asEvents(_101)))
       }
     }
 
@@ -101,10 +101,10 @@ class TreeScenario extends WordSpec with Matchers with ProbablisticAsserts with 
         assertProbabalisticDetails(node__111r.get, Array(8, 0))
       }
       "have expected leaf properties" in {
-        assertChildrenByExactBatch(node__110r.get.children, Array(_1110))
-        assertChildrenByExactBatch(node__101r.get.children, Array(_1101))
-        assertChildrenByExactBatch(node__011r.get.children, Array(_1011))
-        assertChildrenByExactBatch(node__111r.get.children, Array(_0111))
+        assertChildrenByExactBatch(node__110r.get.children, List(asEvents(_1110)))
+        assertChildrenByExactBatch(node__101r.get.children, List(asEvents(_1101)))
+        assertChildrenByExactBatch(node__011r.get.children, List(asEvents(_1011)))
+        assertChildrenByExactBatch(node__111r.get.children, List(asEvents(_0111)))
       }
     }
 
@@ -135,10 +135,10 @@ class TreeScenario extends WordSpec with Matchers with ProbablisticAsserts with 
         assertProbabalisticDetails(node_0111r.get, Array(0, 8))
       }
       "have expected leaf properties" in {
-        assertChildrenByExactBatch(node_1110r.get.children, Array(_01110))
-        assertChildrenByExactBatch(node_1101r.get.children, Array(_11101))
-        assertChildrenByExactBatch(node_1011r.get.children, Array(_11011))
-        assertChildrenByExactBatch(node_0111r.get.children, Array(_10111))
+        assertChildrenByExactBatch(node_1110r.get.children, List(asEvents(_01110)))
+        assertChildrenByExactBatch(node_1101r.get.children, List(asEvents(_11101)))
+        assertChildrenByExactBatch(node_1011r.get.children, List(asEvents(_11011)))
+        assertChildrenByExactBatch(node_0111r.get.children, List(asEvents(_10111)))
       }
     }
 
@@ -176,7 +176,7 @@ class TreeScenario extends WordSpec with Matchers with ProbablisticAsserts with 
         assertProbabalisticDetails(node01110r.get, Array(0,8))
       }
       "have expected leaf properties" in {
-        expected.foreach { n => assertChildrenByExactBatch(n.children, Array[String]()) }
+        expected.foreach { n => assertChildrenByExactBatch(n.children, List[List[String]]()) }
       }
     }
 
