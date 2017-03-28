@@ -2,7 +2,7 @@ name := "cssr"
 
 organization := "com.typeclassified"
 
-version := "0.1.0"
+version := "0.2.0"
 
 runMain := Some("com.typeclassified.hmm.cssr.CSSR")
 
