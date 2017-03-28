@@ -226,7 +226,7 @@ class EdgeSet (edge: LLeaf, val edges:Set[LLeaf]) extends LoopWrapper(edge) {
   edge.isEdge = true
 }
 
-class LLeaf(val observed:List[Event], seededHistories:Set[ParseLeaf] = Set(), parent:Option[LLeaf] = None) extends Leaf[LLeaf] (observed.head, parent) with EmpiricalDistribution {
+class LLeaf(val observed:List[Event], seededHistories:Set[ParseLeaf] = Set(), parent:Option[LLeaf] = None) extends Leaf[LLeaf] (observed.headOption.getOrElse(""), parent) with EmpiricalDistribution {
   histories = seededHistories
   recalculateHists(histories)
 

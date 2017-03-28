@@ -1,6 +1,7 @@
 package com.typeclassified.hmm.cssr.measure
 
 import com.typeclassified.hmm.cssr.Aliases.Event
+import com.typeclassified.hmm.cssr.CSSR.TransitionState
 import com.typeclassified.hmm.cssr.state.AllStates
 import com.typeclassified.hmm.cssr.trees.{ParseLeaf, ParseTree}
 import com.typeclassified.hmm.cssr.shared.{Level, Logging}
@@ -45,7 +46,12 @@ object InferProbabilities extends Logging {
             .foldLeft(1d) {
             (characterTotalPerState, c) => {
               val currentState = allStates.states(currentStateIdx)
-              val transitionState = allStates.transitions(currentStateIdx)(c)
+              var transitionState:TransitionState = None
+              try {
+                transitionState = allStates.transitions(currentStateIdx)(c)
+              } catch {
+                case e: Exception => throw new Exception("failing alphabet symbol is " + c, e)
+              }
               isNullState = isNullState || transitionState.isEmpty
 
               if (isNullState) {

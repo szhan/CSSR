@@ -28,8 +28,8 @@ object ParseTree extends Logging {
     tree.adjustedDataSize =  xs.length - filteredCharactersCount
     val checkpoints:Set[Double] = (1 until 4).map(i => tree.dataSize * i / 4 ).toSet
 
-    for (seq <- xs.filterNot(banned.contains)
-      .split(delim).view
+    for (seq <- Alphabet.delim(xs, delim)
+      .view
       .iterator
       .zipWithIndex
       .sliding(n+1)
@@ -46,7 +46,7 @@ object ParseTree extends Logging {
     val last:Int = if (n > tree.adjustedDataSize) tree.adjustedDataSize.toInt else n
 
     for (i <- (0 to last).reverse) {
-      val left = xs.filterNot(banned.contains).split(delim).take(i)
+      val left = Alphabet.delim(xs, delim).take(i)
       val lIdxs = 0 until i
       cleanInsert(tree, left, lIdxs)
     }
@@ -123,7 +123,8 @@ class ParseTree(val alphabet: Alphabet) extends Tree[ParseLeaf](new ParseLeaf(Li
   *
   * @param observed a sequence of observed values.
   **/
-class ParseLeaf(val observed:List[Event], parent: Option[ParseLeaf] = None) extends Leaf[ParseLeaf] (observed.head, parent) {
+class ParseLeaf(val _observed:List[Event], parent: Option[ParseLeaf] = None) extends Leaf[ParseLeaf] (_observed.head, parent) {
+  val observed = _observed.filterNot(_ == "")
 
   var obsCount:Double = 1
 

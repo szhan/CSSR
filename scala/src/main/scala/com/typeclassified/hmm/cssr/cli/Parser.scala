@@ -44,10 +44,10 @@ object Parser {
       .action { (x, c) => c.copy(dataFile = x) }
       .text(s"Required. The $data file of observed sequence")
 
-    opt[String](Parser.delimiter.head, Parser.delimiter)
+    opt[String](Parser.delimiter)
       .valueName(value)
       .action { case (x, c) => c.copy(delimiter = x) }
-      .text(s"delimiter for the alphabet. Defaults to an empty string")
+      .text(s"delimiter for both the alphabet and the data file. Defaults to an empty string")
 
     opt[Int](Parser.lMax.head, Parser.lMax)
       .valueName(value)
