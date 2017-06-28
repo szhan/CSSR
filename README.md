@@ -1,5 +1,12 @@
 CSSR
 =======
+
+Introduction
+--------------
+This is a R wrapper around the CSSR program originally written by Kristina Klinkner and now maintained by Sam Stites. The CSSR theory and algorithm were developed by Cosma Shalizi, Kristina Klinkner, and James Crutchfield.
+
+Description of the Algorithm
+--------------
 CSSR tries to infer the minimal Markovian model capable of generating a
 time-series, or set of time-series from the same source. The program implements
 the algorithm proposed in the paper, hereafter BC, _[Blind Construction of
