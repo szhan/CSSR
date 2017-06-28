@@ -71,7 +71,13 @@ public:
         const bool &,
         int);
 
+    Rcpp::List PrintOutToR(	const int &maxLength, const double &sigLevel,
+				const bool &isMulti, const bool &isChi, 
+				int alphaSize, char alpha[]);
+
     void PrintDot(char input[], char alpha[]);
+
+    string PrintDotToR(char alpha[]);
 
 private:
     double m_relEnt;         //relative entropy of machine
@@ -83,3 +89,4 @@ private:
 };
 
 #endif
+

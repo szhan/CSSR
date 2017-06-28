@@ -12,6 +12,7 @@
 #include "Common.h"
 #include "G_Array.h"
 #include "Hash2.h"
+#include <Rcpp.h>
 
 #define MAX_LINE_SIZE 500000
 
@@ -43,6 +44,8 @@ class ParseTree {
 public:
 
     void ReadInput(char alphaFile[], char dataFile[]);
+
+    void ReadInputByR(char *data_seq, char *alpha_seq);
 
     void ReadProcessMultiLine(char alphaFile[], char dataFile[]);
 

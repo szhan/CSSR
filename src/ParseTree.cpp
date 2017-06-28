@@ -3,7 +3,7 @@
 //Author:	Kristina Klinkner
 //Date:		July 23, 2003
 //Description:  Class for ParseTree used to store all strings and their
-//              frequency of occurence up to 
+//              frequency of occurence up to
 //              a set maximum length which appear in a given data file.
 //              For use with CSSR.
 /////////////////////////////////////////////////////////////////////////////
@@ -141,7 +141,7 @@ void ParseTree::RemoveTree(TreeNode *&root) {
 //            along with the counts of their children strings
 //////////////////////////////////////////////////////////////////////////
 void ParseTree::FindStrings(int length, G_Array *array) {
-  char *parentString = '\0';
+  char *parentString = nullptr;
   FindStrings(m_root, length, parentString, array);
   return;
 }
@@ -183,7 +183,7 @@ void ParseTree::FindStrings(TreeNode *root, int length, char *parentString,
   else if (length < 2) {
     //determine length of parentString
     int stringLength = 0;
-    if (parentString != '\0') {
+    if (parentString != nullptr) {
       stringLength = strlen(parentString);
     }
 
@@ -234,7 +234,7 @@ void ParseTree::FindStrings(TreeNode *root, int length, char *parentString,
   else {
     //determine length of parentString
     int stringLength2 = 0;
-    if (parentString != '\0') {
+    if (parentString != nullptr) {
       stringLength2 = strlen(parentString);
     }
 
@@ -267,7 +267,7 @@ void ParseTree::FindStrings(TreeNode *root, int length, char *parentString,
 
 ///////////////////////////////////////////////////////////////////////////
 // Function: ParseTree::CreateTree
-// Purpose: reads data and stores all strings of up to maximum length 
+// Purpose: reads data and stores all strings of up to maximum length
 //          in tree
 // In Params: none
 // Out Params: none
@@ -303,9 +303,9 @@ void ParseTree::FillTree() {
 
 
 //////////////////////////////////////////////////////////////////////////
-// Function: ParseTree::GetDataInput 
+// Function: ParseTree::GetDataInput
 // Purpose: reads in the data string
-// In Params: the data input filename 
+// In Params: the data input filename
 // Out Params: none
 // In/Out Params: none
 // Pre- Cond: Filenames must have been read in at command line,
@@ -351,9 +351,9 @@ void ParseTree::GetDataInput(char dataFile[]) {
 
 
 //////////////////////////////////////////////////////////////////////////
-// Function: ParseTree::GetAlphaInput 
+// Function: ParseTree::GetAlphaInput
 // Purpose: reads in the alphabet file
-// In Params: the alphabet input filename 
+// In Params: the alphabet input filename
 // Out Params: none
 // In/Out Params: none
 // Pre- Cond: Filenames must have been read in at command line,
@@ -398,12 +398,12 @@ void ParseTree::GetAlphaInput(char alphaFile[]) {
 
 
 //////////////////////////////////////////////////////////////////////////
-// Function: ParseTree::CheckAlphaInput 
+// Function: ParseTree::CheckAlphaInput
 // Purpose: checks the alphabet string for spaces or nonsense
 // In Params: ParseTree class variables --- m_alpha, m_alphaSize
 // Out Params: none
 // In/Out Params: none
-// Pre- Cond: Alpha file has been read in 
+// Pre- Cond: Alpha file has been read in
 // Post-Cond: Alphabet information in ParseTree class is valid
 //////////////////////////////////////////////////////////////////////////
 void ParseTree::CheckAlphaInput() {
@@ -439,7 +439,7 @@ void ParseTree::CheckAlphaInput() {
 
 
 //////////////////////////////////////////////////////////////////////////
-// Function: ParseTree::CheckDataInput 
+// Function: ParseTree::CheckDataInput
 // Purpose: checks the data string for spaces or nonsense
 // In Params: ParseTree class variables --- m_data, m_dataSize, m_alphaSize
 // Out Params: none
@@ -492,7 +492,7 @@ void ParseTree::CheckDataInput() {
 
 
 //////////////////////////////////////////////////////////////////////////
-// Function: ParseTree::ReadInput 
+// Function: ParseTree::ReadInput
 // Purpose: reads in the alphabet of symbols and data string
 // In Params: the input filenames
 // Out Params: an integer that denotes failure or success
@@ -514,6 +514,28 @@ void ParseTree::ReadInput(char alphaFile[], char dataFile[]) {
 }
 
 
+void ParseTree::ReadInputByR(char *alpha_seq, char *data_seq) {
+  m_alpha = alpha_seq;
+  m_alphaSize = strlen(m_alpha);
+  
+  m_data = data_seq;
+  m_dataSize = strlen(m_data);
+  m_adjustedDataSize = (m_dataSize - (m_maxLength - 1));
+  
+  //Rprintf("alpha: %s\n", m_alpha);
+  Rprintf("alphaSize: %d\n", m_alphaSize);
+  
+  //Rprintf("data: %s\n", m_data);
+  Rprintf("dataSize: %d\n", m_dataSize);
+  Rprintf("maxLength: %d\n", m_maxLength);
+  Rprintf("adjustedDataSize: %d\n", m_adjustedDataSize);
+  
+  //Remove any extra spaces, endlines, etc.
+  CheckAlphaInput();
+  CheckDataInput();
+}
+
+
 ///////////////////////////////////////////////////////////////////////////
 // Function: ParseTree::DecStringCount
 // Purpose: decrements the recorded occurence of a string in the Parse Tree
@@ -529,7 +551,7 @@ void ParseTree::DecStringCount(char string[], TreeNode *&root) {
     return;
   }
 
-  //a node does not exist for this substring 
+  //a node does not exist for this substring
   if (root == NULL) {
     //no match
     cerr << "Attempting to decrement occurence of string which doesn't "
@@ -617,7 +639,7 @@ void ParseTree::MakeSynchAdjustements(char *synchString, int index) {
 
 
 //////////////////////////////////////////////////////////////////////////
-// Function: ParseTree::Read_Process_MultiLine 
+// Function: ParseTree::Read_Process_MultiLine
 // Purpose: reads in the alphabet of symbols and data strings and fills tree
 // In Params: the input files
 // Out Params: an integer that denotes failure or success

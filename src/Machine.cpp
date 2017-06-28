@@ -30,6 +30,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "Machine.h"
+#include <Rcpp.h>
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -537,6 +538,35 @@ void Machine::PrintOut(char input[],
 }
 
 
+Rcpp::List Machine::PrintOutToR(const int &maxLength,
+				const double &sigLevel,
+				const bool &isMulti,
+				const bool &isChi,
+				int alphaSize,
+				char alpha[]) {
+  string dot_graph = PrintDotToR(alpha);
+
+  if (m_allstates->getReSynch()) {
+    Rprintf("This data needed to be synchronized to a set of states more than once.  It is recommended that you try a longer history length, as this set of states cannot possibly be the causal states.");
+  }
+
+  return(Rcpp::List::create(	Rcpp::_["max_length"] = maxLength,
+				Rcpp::_["sig_level"] = sigLevel,
+				Rcpp::_["is_multi"] = isMulti,
+				Rcpp::_["is_chi"] = isChi,
+				Rcpp::_["alpha_size"] = alphaSize,
+				Rcpp::_["rel_ent"] = m_relEnt,
+				Rcpp::_["rel_ent_rate"] = m_relEntRate,
+				Rcpp::_["c_mu"] = m_cMu,
+				Rcpp::_["ent_rate"] = m_entRate,
+				Rcpp::_["variation"] = m_variation,
+				Rcpp::_["nbr_inferred_states"] = m_allstates->getArraySize(),
+				Rcpp::_["dot_graph"] = dot_graph
+				)
+	);
+}
+
+
 ///////////////////////////////////////////////////////////////////////////
 // Function: Machine::PrintDot
 // Purpose: prints out all the machine to a .dot file
@@ -594,3 +624,46 @@ void Machine::PrintDot(char input[], char alpha[]) {
   outData.close();
   delete[] output;
 }
+
+
+string Machine::PrintDotToR(char alpha[]) {
+  int size = m_allstates->getArraySize();
+  int distSize = m_allstates->getDistSize();
+  State *state;
+  int nextState;
+  double *dist;
+
+  string dot_str = "";
+  dot_str += "digraph \"G\" {";
+  dot_str += "size = \"6,8.5\";";
+  dot_str += "ratio = \"fill\";";
+  dot_str += "node [shape = circle];";
+  dot_str += "node [fontsize = 24];";
+  dot_str += "edge [fontsize = 24];";
+
+  for (int i = 0; i < size; i++) {
+    state = m_allstates->getState(i);
+
+    for (int k = 0; k < distSize; k++) {
+      dist = state->getCurrentDist();
+      nextState = state->getTransitions(k);
+
+      if (nextState != NULL_STATE) {
+        dot_str += to_string(i);
+	dot_str += " -> ";
+	dot_str += to_string(nextState);
+	dot_str += "[label = \"";
+	dot_str += alpha[k];
+	dot_str += ": ";
+	dot_str += to_string(dist[k]);
+	dot_str += "  \"];";
+      }
+    }
+  }
+
+  dot_str += "}";
+
+  return(dot_str);
+}
+
+
