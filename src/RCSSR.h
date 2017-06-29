@@ -18,8 +18,11 @@
 
 const char *program = "CSSR";  //program name
 
-Rcpp::List runCSSR(Rcpp::CharacterVector alphabet, Rcpp::CharacterVector data, const int maxLength,
-			const bool isMulti, const bool isChi, const double sigLevel,
+Rcpp::List runCSSR(	const Rcpp::CharacterVector alphabet,
+			const Rcpp::CharacterVector data,
+			const int maxLength,
+			const bool isChi,
+			const double sigLevel,
 			const Rcpp::CharacterVector outputPrefix);
 
 void PrintError() {

@@ -54,15 +54,17 @@
 //' @param alphabet String representing alphabet
 //' @param data String representing discrete-state time series data
 //' @param maxLength Maximum history length
-//' @param isMulti something
 //' @param isChi Boolean to indicate whether to perform chi-square test
 //' @param sigLevel Significant level
 //' @param outputPrefix Prefix for output files
 //'
 //' @export
 // [[Rcpp::export]]
-Rcpp::List runCSSR(	const Rcpp::CharacterVector alphabet, const Rcpp::CharacterVector data, const int maxLength,
-			const bool isMulti, const bool isChi, const double sigLevel,
+Rcpp::List runCSSR(	const Rcpp::CharacterVector alphabet,
+			const Rcpp::CharacterVector data,
+			const int maxLength,
+			const bool isChi,
+			const double sigLevel,
 			const Rcpp::CharacterVector outputPrefix){
   string alphabet_str = Rcpp::as<string>(alphabet);
   string data_str = Rcpp::as<string>(data);
@@ -73,6 +75,7 @@ Rcpp::List runCSSR(	const Rcpp::CharacterVector alphabet, const Rcpp::CharacterV
   strcpy(alphabet_ref, alphabet_str.c_str());
   strcpy(data_ref, data_str.c_str());
   
+  bool isMulti = false;	//hidden
   HashTable2 *alphaHash;
   Machine *machine;
   bool stateRemoved = false;	//dummy
