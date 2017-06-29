@@ -138,7 +138,7 @@ Rcpp::List runCSSR(	const Rcpp::CharacterVector alphabet,
   allstates.PrintOut(data_file, parsetree.getAlpha());
 
   //print out machine and calculationsf
-  Rcpp::List printOutForR = machine->PrintOutToR(maxLength, sigLevel, isMulti, isChi,
+  Rcpp::List printOutForR = machine->PrintOutToR(maxLength, sigLevel, isChi,
 						parsetree.getAlphaSize(), parsetree.getAlpha());
 
   delete machine;

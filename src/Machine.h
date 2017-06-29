@@ -71,9 +71,11 @@ public:
         const bool &,
         int);
 
-    Rcpp::List PrintOutToR(	const int &maxLength, const double &sigLevel,
-				const bool &isMulti, const bool &isChi, 
-				int alphaSize, char alpha[]);
+    Rcpp::List PrintOutToR(	const int &maxLength,
+				const double &sigLevel,
+				const bool &isChi, 
+				int alphaSize,
+				char alpha[]);
 
     void PrintDot(char input[], char alpha[]);
 

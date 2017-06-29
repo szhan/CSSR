@@ -540,7 +540,6 @@ void Machine::PrintOut(char input[],
 
 Rcpp::List Machine::PrintOutToR(const int &maxLength,
 				const double &sigLevel,
-				const bool &isMulti,
 				const bool &isChi,
 				int alphaSize,
 				char alpha[]) {
@@ -552,7 +551,6 @@ Rcpp::List Machine::PrintOutToR(const int &maxLength,
 
   return(Rcpp::List::create(	Rcpp::_["max_length"] = maxLength,
 				Rcpp::_["sig_level"] = sigLevel,
-				Rcpp::_["is_multi"] = isMulti,
 				Rcpp::_["is_chi"] = isChi,
 				Rcpp::_["alpha_size"] = alphaSize,
 				Rcpp::_["rel_ent"] = m_relEnt,
