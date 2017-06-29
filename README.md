@@ -9,13 +9,13 @@ Installation
 --------------
 At the moment, you have to git clone the repo, and then execute the following commands within the R console.
 
-'''
+```
 % require(Rcpp)
 % 
 % cssr_dir = "/Users/szhan/Desktop/Learn/csss2017/CSSR/"
 % cpp_file = paste(cssr_dir, "/src/Main.cpp", collapse="")
 % sourceCpp(cpp_file)
-'''
+```
 
 There is an issue with devtools, and installing via install_github("szhan/CSSR").
 
