@@ -18,9 +18,9 @@
 
 const char *program = "CSSR";  //program name
 
-Rcpp::List runCSSR(Rcpp::CharacterVector alphabet, Rcpp::CharacterVector data,
-		   int max_length, bool isMult, bool isChi, double sigLevel,
-		   const Rcpp::CharacterVector output_prefix);
+Rcpp::List runCSSR(Rcpp::CharacterVector alphabet, Rcpp::CharacterVector data, const int maxLength,
+			const bool isMulti, const bool isChi, const double sigLevel,
+			const Rcpp::CharacterVector outputPrefix);
 
 void PrintError() {
   cerr << program << " usage: " << "alphabet_file " << "data_file "

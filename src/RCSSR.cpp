@@ -38,8 +38,8 @@
 //Title:	RCSSR.cpp (modified from Main.cpp)
 //Author:	Shing Hei Zhan
 //Date:		June 28, 2017
-//Description:	Parts of the original CSSR source code has been rewritten to allow
-//		calling withn R console.
+//Description:	Parts of the original CSSR source code has been rewritten 
+//		to allow calling withn R console.
 //
 /////////////////////////////////////////////////////////////////////////////
 
@@ -51,23 +51,19 @@
 //'
 //' Write some docs!
 //'
-//' @param alphabet something
-//' @param data something
-//' @param maxLength something
+//' @param alphabet String representing alphabet
+//' @param data String representing discrete-state time series data
+//' @param maxLength Maximum history length
 //' @param isMulti something
-//' @param chiSquare something
-//' @param sigLevel something
+//' @param isChi Boolean to indicate whether to perform chi-square test
+//' @param sigLevel Significant level
+//' @param outputPrefix Prefix for output files
 //'
 //' @export
 // [[Rcpp::export]]
-Rcpp::List runCSSR(	const Rcpp::CharacterVector alphabet, const Rcpp::CharacterVector data,
-			const int maxLength, const bool isMulti, const bool isChi, const double sigLevel,
-			const Rcpp::CharacterVector output_prefix){
-  //alphabet as list of characters
-  //data as list of characters
-  //maximum length of string
-  //boolean to indicate multiline data
-  //boolean to indicate use of chi-squared test
+Rcpp::List runCSSR(	const Rcpp::CharacterVector alphabet, const Rcpp::CharacterVector data, const int maxLength,
+			const bool isMulti, const bool isChi, const double sigLevel,
+			const Rcpp::CharacterVector outputPrefix){
   string alphabet_str = Rcpp::as<string>(alphabet);
   string data_str = Rcpp::as<string>(data);
   
@@ -121,7 +117,7 @@ Rcpp::List runCSSR(	const Rcpp::CharacterVector alphabet, const Rcpp::CharacterV
   allstates.StoreTransitions(parsetree.getMaxLength(), parsetree.getAlpha());
 
   //calculate distribution/frequency of states
-  string file_name = Rcpp::as<string>(output_prefix);
+  string file_name = Rcpp::as<string>(outputPrefix);
   char *data_file = new char [file_name.length() + 1];
   strcpy(data_file, file_name.c_str());
 
