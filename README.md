@@ -5,6 +5,18 @@ Introduction
 --------------
 This is a R wrapper around the CSSR program originally written by Kristina Klinkner and now maintained by Sam Stites. The CSSR theory and algorithm were developed by Cosma Shalizi, Kristina Klinkner, and James Crutchfield.
 
+Installation
+--------------
+At the moment, you have to git clone the repo, and then execute the following commands within the R console.
+
+% require(Rcpp)
+% 
+% cssr_dir = "/Users/szhan/Desktop/Learn/csss2017/CSSR/"
+% cpp_file = paste(cssr_dir, "/src/Main.cpp", collapse="")
+% sourceCpp(cpp_file)
+
+There is an issue with devtools, and installing via install_github("szhan/CSSR").
+
 Description of the Algorithm
 --------------
 CSSR tries to infer the minimal Markovian model capable of generating a
