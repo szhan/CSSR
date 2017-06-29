@@ -66,14 +66,14 @@ Rcpp::List runCSSR(	const Rcpp::CharacterVector alphabet,
 			const bool isChi,
 			const double sigLevel,
 			const Rcpp::CharacterVector outputPrefix){
-  string alphabet_str = Rcpp::as<string>(alphabet);
-  string data_str = Rcpp::as<string>(data);
+  string alphabetStr = Rcpp::as<string>(alphabet);
+  string dataStr = Rcpp::as<string>(data);
   
-  char *alphabet_ref = new char [alphabet_str.length() + 1];
-  char *data_ref = new char [data_str.length() + 1];
+  char *alphabetRef = new char [alphabetStr.length() + 1];
+  char *dataRef = new char [dataStr.length() + 1];
   
-  strcpy(alphabet_ref, alphabet_str.c_str());
-  strcpy(data_ref, data_str.c_str());
+  strcpy(alphabetRef, alphabetStr.c_str());
+  strcpy(dataRef, dataStr.c_str());
   
   bool isMulti = false;	//hidden
   HashTable2 *alphaHash;
@@ -84,7 +84,7 @@ Rcpp::List runCSSR(	const Rcpp::CharacterVector alphabet,
   ParseTree parsetree(maxLength);
 
   //read in data and alphabet from files
-  parsetree.ReadInputByR(alphabet_ref, data_ref);
+  parsetree.ReadInputByR(alphabetRef, dataRef);
   //enter data in tree
   parsetree.FillTree();
 
@@ -120,11 +120,11 @@ Rcpp::List runCSSR(	const Rcpp::CharacterVector alphabet,
   allstates.StoreTransitions(parsetree.getMaxLength(), parsetree.getAlpha());
 
   //calculate distribution/frequency of states
-  string file_name = Rcpp::as<string>(outputPrefix);
-  char *data_file = new char [file_name.length() + 1];
-  strcpy(data_file, file_name.c_str());
+  string fileName = Rcpp::as<string>(outputPrefix);
+  char *dataFile = new char [fileName.length() + 1];
+  strcpy(dataFile, fileName.c_str());
 
-  allstates.GetStateDistsMulti(parsetree, data_file, alphaHash, isMulti);
+  allstates.GetStateDistsMulti(parsetree, dataFile, alphaHash, isMulti);
 
   //calculate information values
   machine = new Machine(&allstates);

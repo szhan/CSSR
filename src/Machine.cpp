@@ -631,13 +631,13 @@ string Machine::PrintDotToR(char alpha[]) {
   int nextState;
   double *dist;
 
-  string dot_str = "";
-  dot_str += "digraph \"G\" {";
-  dot_str += "size = \"6,8.5\";";
-  dot_str += "ratio = \"fill\";";
-  dot_str += "node [shape = circle];";
-  dot_str += "node [fontsize = 24];";
-  dot_str += "edge [fontsize = 24];";
+  string dotStr = "";
+  dotStr += "digraph \"G\" {";
+  dotStr += "size = \"6,8.5\";";
+  dotStr += "ratio = \"fill\";";
+  dotStr += "node [shape = circle];";
+  dotStr += "node [fontsize = 24];";
+  dotStr += "edge [fontsize = 24];";
 
   for (int i = 0; i < size; i++) {
     state = m_allstates->getState(i);
@@ -647,21 +647,21 @@ string Machine::PrintDotToR(char alpha[]) {
       nextState = state->getTransitions(k);
 
       if (nextState != NULL_STATE) {
-        dot_str += to_string(i);
-	dot_str += " -> ";
-	dot_str += to_string(nextState);
-	dot_str += "[label = \"";
-	dot_str += alpha[k];
-	dot_str += ": ";
-	dot_str += to_string(dist[k]);
-	dot_str += "  \"];";
+        dotStr += to_string(i);
+	dotStr += " -> ";
+	dotStr += to_string(nextState);
+	dotStr += "[label = \"";
+	dotStr += alpha[k];
+	dotStr += ": ";
+	dotStr += to_string(dist[k]);
+	dotStr += "  \"];";
       }
     }
   }
 
-  dot_str += "}";
+  dotStr += "}";
 
-  return(dot_str);
+  return(dotStr);
 }
 
 
