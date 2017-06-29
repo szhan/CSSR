@@ -135,7 +135,7 @@ Rcpp::List runCSSR(	const Rcpp::CharacterVector alphabet,
   machine->CalcVariation(parsetree, alphaHash, isMulti);
 
   //print out states
-  allstates.PrintOut(data_file, parsetree.getAlpha());
+  allstates.PrintOut(dataFile, parsetree.getAlpha());
 
   //print out machine and calculationsf
   Rcpp::List printOutForR = machine->PrintOutToR(maxLength, sigLevel, isChi,
