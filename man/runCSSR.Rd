@@ -22,4 +22,3 @@ runCSSR(alphabet, data, maxLength, isChi, sigLevel, outputPrefix)
 \description{
 Write some docs!
 }
-

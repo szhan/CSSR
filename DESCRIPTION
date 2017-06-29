@@ -20,4 +20,4 @@ ByteCompile: true
 Imports:
     Rcpp (>= 0.12.11)
 LinkingTo: Rcpp
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
