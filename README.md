@@ -7,19 +7,20 @@ This is a R wrapper around the CSSR program originally written by Kristina Klink
 
 Installation
 --------------
-At the moment, you have to git clone the repo, and then execute the following commands within the R console.
+Simply execute the following inside the R console.
 
 ```
-% require(Rcpp)
-% 
-% cssr_dir = "/Users/szhan/Desktop/Learn/csss2017/CSSR/"
-% cpp_file = paste(cssr_dir, "/src/Main.cpp", collapse="")
-% sourceCpp(cpp_file)
+> require(devtools)
+> install_github("szhan/CSSR")
 ```
 
-There is an issue with devtools, and installing via install_github("szhan/CSSR").
+Example command.
+```
+> runCSSR(alphabet="01", data="010101101010101", maxLength=15, isChi=FALSE, sigLevel=0.001, outputPrefix="test")
+```
 
-Description of the Algorithm
+Warning: Setting isChi to TRUE may lead R to crash. At the moment, it seems that it only works on long data strings. It may be related to a known issue of the original CSSR source code (see Issue #1).
+
 --------------
 CSSR tries to infer the minimal Markovian model capable of generating a
 time-series, or set of time-series from the same source. The program implements
