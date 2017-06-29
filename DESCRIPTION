@@ -2,8 +2,10 @@ Package: CSSR
 Type: Package
 Title: Causal State Splitting Reconstruction
 Version: 0.1.0
-Author: Shing Hei Zhan
-Maintainer: The package maintainer <shing.zhan@gmail.com>
+Authors@R: c(
+          person(given = "Shing Hei", family = "Zhan", email = "shing.zhan@gmail.com", role = c("cre","aut")),
+          person(given = "Sean", family = "Wu", email = "slwu89@berkeley.edu", role= c("ctb"))
+          )
 Description: This is a R wrapper around the CSSR program originally written by
     Kristina Klinkner. The theory behind the CSSR algorithm was developed by Cosma
     Shalizi and Kristina Klinkner, under the sponsorship of James Crutchfield.
