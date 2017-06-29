@@ -5,14 +5,15 @@
 #'
 #' Write some docs!
 #'
-#' @param alphabet something
-#' @param data something
-#' @param maxLength something
-#' @param chiSquare something
-#' @param sigLevel something
+#' @param alphabet String representing alphabet
+#' @param data String representing discrete-state time series data
+#' @param maxLength Maximum history length
+#' @param isChi Boolean to indicate whether to perform chi-square test
+#' @param sigLevel Significant level
+#' @param outputPrefix Prefix for output files
 #'
 #' @export
-runCSSR <- function(alphabet, data, maxLength, isMulti=false, isChi=false, sigLevel = 0.001, outputPrefix) {
-    .Call('runCSSR', PACKAGE='CSSR', alphabet, data, maxLength, isMulti, isChi, sigLevel, outputPrefix)
+runCSSR <- function(alphabet, data, maxLength, isChi, sigLevel, outputPrefix) {
+    .Call('CSSR_runCSSR', PACKAGE = 'CSSR', alphabet, data, maxLength, isChi, sigLevel, outputPrefix)
 }
 

@@ -4,19 +4,22 @@
 \alias{runCSSR}
 \title{Run CSSR Algorithm}
 \usage{
-runCSSR(alphabet, data, maxLength, chiSquare, sigLevel = 0.001)
+runCSSR(alphabet, data, maxLength, isChi, sigLevel, outputPrefix)
 }
 \arguments{
-\item{alphabet}{something}
+\item{alphabet}{String representing alphabet}
 
-\item{data}{something}
+\item{data}{String representing discrete-state time series data}
 
-\item{maxLength}{something}
+\item{maxLength}{Maximum history length}
 
-\item{chiSquare}{something}
+\item{isChi}{Boolean to indicate whether to perform chi-square test}
 
-\item{sigLevel}{something}
+\item{sigLevel}{Significant level}
+
+\item{outputPrefix}{Prefix for output files}
 }
 \description{
 Write some docs!
 }
+

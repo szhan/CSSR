@@ -6,34 +6,24 @@
 using namespace Rcpp;
 
 // runCSSR
-Rcpp::List runCSSR(const Rcpp::CharacterVector& alphabet, const Rcpp::List& data, const int& maxLength, const bool& chiSquare, const double& sigLevel);
-RcppExport SEXP CSSR_runCSSR(SEXP alphabetSEXP, SEXP dataSEXP, SEXP maxLengthSEXP, SEXP chiSquareSEXP, SEXP sigLevelSEXP) {
+Rcpp::List runCSSR(const Rcpp::CharacterVector alphabet, const Rcpp::CharacterVector data, const int maxLength, const bool isChi, const double sigLevel, const Rcpp::CharacterVector outputPrefix);
+RcppExport SEXP CSSR_runCSSR(SEXP alphabetSEXP, SEXP dataSEXP, SEXP maxLengthSEXP, SEXP isChiSEXP, SEXP sigLevelSEXP, SEXP outputPrefixSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Rcpp::CharacterVector& >::type alphabet(alphabetSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::List& >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< const int& >::type maxLength(maxLengthSEXP);
-    Rcpp::traits::input_parameter< const bool& >::type chiSquare(chiSquareSEXP);
-    Rcpp::traits::input_parameter< const double& >::type sigLevel(sigLevelSEXP);
-    rcpp_result_gen = Rcpp::wrap(runCSSR(alphabet, data, maxLength, chiSquare, sigLevel));
-    return rcpp_result_gen;
-END_RCPP
-}
-// rcpp_hello
-List rcpp_hello();
-RcppExport SEXP CSSR_rcpp_hello() {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(rcpp_hello());
+    Rcpp::traits::input_parameter< const Rcpp::CharacterVector >::type alphabet(alphabetSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::CharacterVector >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const int >::type maxLength(maxLengthSEXP);
+    Rcpp::traits::input_parameter< const bool >::type isChi(isChiSEXP);
+    Rcpp::traits::input_parameter< const double >::type sigLevel(sigLevelSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::CharacterVector >::type outputPrefix(outputPrefixSEXP);
+    rcpp_result_gen = Rcpp::wrap(runCSSR(alphabet, data, maxLength, isChi, sigLevel, outputPrefix));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"CSSR_runCSSR", (DL_FUNC) &CSSR_runCSSR, 5},
-    {"CSSR_rcpp_hello", (DL_FUNC) &CSSR_rcpp_hello, 0},
+    {"CSSR_runCSSR", (DL_FUNC) &CSSR_runCSSR, 6},
     {NULL, NULL, 0}
 };
 

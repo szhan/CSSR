@@ -4,12 +4,20 @@ Title: Causal State Splitting Reconstruction
 Version: 0.1.0
 Author: Shing Hei Zhan
 Maintainer: The package maintainer <shing.zhan@gmail.com>
-Description: This is a R wrapper around the CSSR program originally written by Kristina Klinkner. The theory behind the CSSR algorithm was developed by Cosma Shalizi and Kristina Klinkner, under the sponsorship of James Crutchfield. Briefly, CSSR creates separate causal states for each history of data with a singular probability distribution. History length increases incrementally until cutoff point is reached. Then, it removes transient states, determinizes remaining states, and calculates various metrics for the resulting state machine.
+Description: This is a R wrapper around the CSSR program originally written by
+    Kristina Klinkner. The theory behind the CSSR algorithm was developed by Cosma
+    Shalizi and Kristina Klinkner, under the sponsorship of James Crutchfield.
+    Briefly, CSSR creates separate causal states for each history of data with
+    a singular probability distribution. History length increases incrementally
+    until cutoff point is reached. Then, it removes transient states, determinizes
+    remaining states, and calculates various metrics for the resulting state
+    machine.
 License: BSD 3
 Encoding: UTF-8
 LazyData: true
 SystemRequirements: C++11
 ByteCompile: true
-Imports: Rcpp (>= 0.12.11)
+Imports:
+    Rcpp (>= 0.12.11)
 LinkingTo: Rcpp
-RoxygenNote: 6.0.1
+RoxygenNote: 5.0.1
