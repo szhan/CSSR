@@ -3,7 +3,11 @@
 
 #' Run CSSR Algorithm
 #'
-#' Write some docs!
+#' Run CSSR algorithm to creates separate causal states for each history of data
+#'		with a singular probability distribution.  History length
+#'		increases incrementally until cutoff point is reached.  Then
+#'             removes transient states, determinizes remaining states, and
+#'             calculates various metrics for the resulting state machine.
 #'
 #' @param alphabet String representing alphabet
 #' @param data String representing discrete-state time series data
@@ -12,6 +16,7 @@
 #' @param sigLevel Significant level
 #' @param outputPrefix Prefix for output files
 #'
+#' @return a named list
 #' @export
 runCSSR <- function(alphabet, data, maxLength, isChi, sigLevel, outputPrefix) {
     .Call('CSSR_runCSSR', PACKAGE = 'CSSR', alphabet, data, maxLength, isChi, sigLevel, outputPrefix)

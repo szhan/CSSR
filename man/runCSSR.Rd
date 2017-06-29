@@ -19,6 +19,13 @@ runCSSR(alphabet, data, maxLength, isChi, sigLevel, outputPrefix)
 
 \item{outputPrefix}{Prefix for output files}
 }
+\value{
+a named list
+}
 \description{
-Write some docs!
+Run CSSR algorithm to creates separate causal states for each history of data
+	with a singular probability distribution.  History length
+	increases incrementally until cutoff point is reached.  Then
+            removes transient states, determinizes remaining states, and
+            calculates various metrics for the resulting state machine.
 }

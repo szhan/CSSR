@@ -38,7 +38,7 @@
 //Title:	RCSSR.cpp (modified from Main.cpp)
 //Author:	Shing Hei Zhan
 //Date:		June 28, 2017
-//Description:	Parts of the original CSSR source code has been rewritten 
+//Description:	Parts of the original CSSR source code has been rewritten
 //		to allow calling withn R console.
 //
 /////////////////////////////////////////////////////////////////////////////
@@ -49,7 +49,11 @@
 
 //' Run CSSR Algorithm
 //'
-//' Write some docs!
+//' Run CSSR algorithm to creates separate causal states for each history of data
+//'		with a singular probability distribution.  History length
+//'		increases incrementally until cutoff point is reached.  Then
+//'             removes transient states, determinizes remaining states, and
+//'             calculates various metrics for the resulting state machine.
 //'
 //' @param alphabet String representing alphabet
 //' @param data String representing discrete-state time series data
@@ -58,6 +62,7 @@
 //' @param sigLevel Significant level
 //' @param outputPrefix Prefix for output files
 //'
+//' @return a named list
 //' @export
 // [[Rcpp::export]]
 Rcpp::List runCSSR(	const Rcpp::CharacterVector alphabet,
@@ -68,13 +73,13 @@ Rcpp::List runCSSR(	const Rcpp::CharacterVector alphabet,
 			const Rcpp::CharacterVector outputPrefix){
   string alphabetStr = Rcpp::as<string>(alphabet);
   string dataStr = Rcpp::as<string>(data);
-  
+
   char *alphabetRef = new char [alphabetStr.length() + 1];
   char *dataRef = new char [dataStr.length() + 1];
-  
+
   strcpy(alphabetRef, alphabetStr.c_str());
   strcpy(dataRef, dataStr.c_str());
-  
+
   bool isMulti = false;	//hidden
   HashTable2 *alphaHash;
   Machine *machine;
@@ -145,4 +150,3 @@ Rcpp::List runCSSR(	const Rcpp::CharacterVector alphabet,
 
   return printOutForR;
 }
-
