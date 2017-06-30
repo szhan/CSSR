@@ -39,4 +39,21 @@ print(a)
 
 # run it in parallel
 library(parallel)
-# varCmu = parallel::mclapply()
+w = 1000
+
+sequence <- rbinom(length(p_coin),1,p_coin)
+sequence <- paste(sequence,collapse="")
+
+cmu_vec <- numeric(nchar(sequence)-w+1)
+hmu_vec <-numeric(nchar(sequence)-w+1)
+end = (nchar(sequence)-w+1)
+
+varCmu = parallel::mclapply(X = 1:end,FUN = function(i,sequence,w){
+  invisible(out <- runCSSR(alphabet="01",data=substr(sequence,i,i+w-1),maxLength=3,isChi=FALSE,sigLevel=0.001,outputPrefix=""))
+  # cmu_vec[i] <- out$c_mu
+  # hmu_vec[i] <- out$ent_rate
+  return(list(
+    c_mu = out$c_mu,
+    ent_rate = out$ent_rate
+  ))
+},sequence=sequence,w=w)
