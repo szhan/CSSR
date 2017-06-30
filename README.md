@@ -21,6 +21,7 @@ Example command.
 
 Warning: Setting isChi to TRUE may lead R to crash. At the moment, it seems that it only works on long data strings. It may be related to a known issue of the original CSSR source code (see Issue #1).
 
+Description of the Algorithm
 --------------
 CSSR tries to infer the minimal Markovian model capable of generating a
 time-series, or set of time-series from the same source. The program implements
