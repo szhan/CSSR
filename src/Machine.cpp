@@ -74,7 +74,7 @@ void Machine::CalcStringProbs(G_Array *g_array, int /*maxLength*/,
 // Function: Machine::CalcStringProb
 // Purpose: calculates the probability of a string in the
 //          data based on the inferred machine
-// In Params: the array of states (machine), a string and 
+// In Params: the array of states (machine), a string and
 //            a hashtable of alpha values and their indices
 // Out Params: the string probability
 // In/Out Params: none
@@ -136,7 +136,7 @@ double Machine::CalcStringProb(char *string, HashTable2 *hashtable) {
 // Out Params: none
 // In/Out Params: none
 // Pre- Cond: array of states (the machine) has been inferred
-// Post-Cond: the relative entropy has been calculated and stored in the 
+// Post-Cond: the relative entropy has been calculated and stored in the
 //            machine class as a member variable
 //////////////////////////////////////////////////////////////////////////
 void Machine::CalcRelEnt(ParseTree &parsetree, HashTable2 *hashtable, bool /*isMulti*/) {
@@ -188,12 +188,12 @@ void Machine::CalcRelEnt(ParseTree &parsetree, HashTable2 *hashtable, bool /*isM
 ///////////////////////////////////////////////////////////////////////////
 // Function: Machine::CalcRelEntRate
 // Purpose: calculates the relative entropy rate based on the inferred machine
-// In Params: parstree of strings, hashtable of alpha and index values, 
+// In Params: parstree of strings, hashtable of alpha and index values,
 //            and boolean denoting multi-string input
 // Out Params: none
 // In/Out Params: none
 // Pre- Cond: array of states (the machine) has been inferred
-// Post-Cond: the relative entropy rate has been calculated and stored in the 
+// Post-Cond: the relative entropy rate has been calculated and stored in the
 //            machine class as a member variable
 //////////////////////////////////////////////////////////////////////////
 void Machine::CalcRelEntRate(ParseTree &parsetree, HashTable2 *hashtable, bool /*isMulti*/) {
@@ -231,7 +231,7 @@ void Machine::CalcRelEntRate(ParseTree &parsetree, HashTable2 *hashtable, bool /
 
 ///////////////////////////////////////////////////////////////////////////
 // Function: Machine::CalcRelEntRateHist
-// Purpose: calculates the relative entropy rate based on the inferred machine 
+// Purpose: calculates the relative entropy rate based on the inferred machine
 //          for a given history
 // In Params: an array of history probabilities, a list of histories, hashtable
 //            of alpha and index values, index of current history, alphabet,
@@ -263,7 +263,7 @@ double Machine::CalcRelEntRateHist(double *stringProbs,
   for (int j = 0; j < alphaSize; j++) {
     histFrequency += ((double) counts[j]);
   }
-  //for each alpha value/symbol 
+  //for each alpha value/symbol
   for (int k = 0; k < alphaSize; k++) {
     //get distribution for data
     dataDist = ((double) counts[k]) / histFrequency;
@@ -287,7 +287,7 @@ double Machine::CalcRelEntRateHist(double *stringProbs,
 
 ///////////////////////////////////////////////////////////////////////////
 // Function: Machine::CalcRelEntRateAlpha
-// Purpose: calculates the relative entropy rate based on the inferred machine 
+// Purpose: calculates the relative entropy rate based on the inferred machine
 //          for one alphabet symbol given a specific history
 // In Params: the history probability, the history, the frequency of occurence
 //            of the history with that particular alpha symbol, alphabet
@@ -338,7 +338,7 @@ double Machine::CalcRelEntRateAlpha(double stringProb,
       << endl;
     }
 
-    //take the log ratio between the 
+    //take the log ratio between the
     //conditional distributions of the inferred and data
     logRatio = log(dataDist / inferredRatio);
 
@@ -359,12 +359,12 @@ double Machine::CalcRelEntRateAlpha(double stringProb,
 ///////////////////////////////////////////////////////////////////////////
 // Function: Machine::CalcVariation
 // Purpose: calculates the variation rate based on the inferred machine
-// In Params: parstree of strings, hashtable of alpha and index values, 
+// In Params: parstree of strings, hashtable of alpha and index values,
 //            and boolean denoting multi-string input
 // Out Params: none
 // In/Out Params: none
 // Pre- Cond: array of states (the machine) has been inferred
-// Post-Cond: the relative entropy rate has been calculated and stored in the 
+// Post-Cond: the relative entropy rate has been calculated and stored in the
 //            machine class as a member variable
 //////////////////////////////////////////////////////////////////////////
 void Machine::CalcVariation(ParseTree &parsetree, HashTable2 *hashtable, bool /*isMulti*/) {
@@ -418,7 +418,7 @@ void Machine::CalcVariation(ParseTree &parsetree, HashTable2 *hashtable, bool /*
 // Out Params: none
 // In/Out Params: none
 // Pre- Cond: array of states (the machine) has been inferred
-// Post-Cond: the statistical complexity has been calculated and stored in the 
+// Post-Cond: the statistical complexity has been calculated and stored in the
 //            machine class as a member variable
 //////////////////////////////////////////////////////////////////////////
 void Machine::CalcCmu() {
@@ -445,7 +445,7 @@ void Machine::CalcCmu() {
 // Out Params: none
 // In/Out Params: none
 // Pre- Cond: array of states (the machine) has been inferred
-// Post-Cond: the entropy rate has been calculated and stored in the 
+// Post-Cond: the entropy rate has been calculated and stored in the
 //            machine class as a member variable
 //////////////////////////////////////////////////////////////////////////
 void Machine::CalcEntRate() {
@@ -543,13 +543,14 @@ Rcpp::List Machine::PrintOutToR(const int &maxLength,
 				const bool &isChi,
 				int alphaSize,
 				char alpha[]) {
-  string dot_graph = PrintDotToR(alpha);
+  std::string dot_graph = PrintDotToR(alpha);
 
   if (m_allstates->getReSynch()) {
     Rprintf("This data needed to be synchronized to a set of states more than once.  It is recommended that you try a longer history length, as this set of states cannot possibly be the causal states.");
   }
 
-  return(Rcpp::List::create(	Rcpp::_["max_length"] = maxLength,
+  return(Rcpp::List::create(
+        Rcpp::_["max_length"] = maxLength,
 				Rcpp::_["sig_level"] = sigLevel,
 				Rcpp::_["is_chi"] = isChi,
 				Rcpp::_["alpha_size"] = alphaSize,
@@ -624,7 +625,7 @@ void Machine::PrintDot(char input[], char alpha[]) {
 }
 
 
-string Machine::PrintDotToR(char alpha[]) {
+std::string Machine::PrintDotToR(char alpha[]) {
   int size = m_allstates->getArraySize();
   int distSize = m_allstates->getDistSize();
   State *state;
@@ -663,5 +664,3 @@ string Machine::PrintDotToR(char alpha[]) {
 
   return(dotStr);
 }
-
-
