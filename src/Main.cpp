@@ -139,14 +139,27 @@ Rcpp::List runCSSR(	const Rcpp::CharacterVector alphabet,
   machine->CalcEntRate();
   machine->CalcVariation(parsetree, alphaHash, isMulti);
 
-  //print out states
-  allstates.PrintOut(dataFile, parsetree.getAlpha());
+	//print out info
+	int dataSize = parsetree.getDataSize();
+	int adjustedDataSize = parsetree.getAdjustedDataSize();
+	Rcpp::List printOutForRInfo = Rcpp::List::create(	Rcpp::_["data_size"] = dataSize,
+								Rcpp::_["adj_data_size"] = adjustedDataSize);
 
-  //print out machine and calculationsf
-  Rcpp::List printOutForR = machine->PrintOutToR(maxLength, sigLevel, isChi,
-						parsetree.getAlphaSize(), parsetree.getAlpha());
+	//print out states
+	Rcpp::List printOutForRAllStates = allstates.PrintOutToR(parsetree.getAlpha());
+	//allstates.PrintOut(dataFile, parsetree.getAlpha());
 
-  delete machine;
+	//print out machine and calculationsf
+	Rcpp::List printOutForRMachines = machine->PrintOutToR(maxLength, sigLevel, isChi,
+								parsetree.getAlphaSize(), parsetree.getAlpha());
 
-  return printOutForR;
+	//combine Rcpp lists
+	Rcpp::List printOutForRCombined = Rcpp::List::create(	Rcpp::_["info"] = printOutForRInfo,
+								Rcpp::_["results"] = printOutForRMachines,
+								Rcpp::_["matrices"] = printOutForRAllStates);
+
+	delete machine;
+
+	return printOutForRCombined;
 }
+

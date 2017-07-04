@@ -71,6 +71,34 @@ void AllStates::PrintOut(char input[], char alpha[]) {
 }
 
 
+Rcpp::List AllStates::PrintOutToR(char alpha[]) {
+	Rcpp::NumericVector stateProbVec(m_arraySize);
+	Rcpp::NumericMatrix transProbMat(m_arraySize, m_distSize);
+	Rcpp::NumericMatrix transStatMat(m_arraySize, m_distSize);
+	Rcpp::List stateSpecificTransMat;
+	
+	// Iterate through inferred states ('m_arraySize' of them)
+	for ( int i = 0; i < m_arraySize; i++ ) {
+		double stateProb = m_StateArray[i]->getFrequency();
+		stateProbVec[i] = stateProb;
+		
+		// Iterate through observed states ('m_distSize' of them)
+		double *transProb = m_StateArray[i]->getCurrentDist();
+		for ( int j = 0; j < m_distSize; j++ ) {
+			transProbMat(i, j) = transProb[j];
+		}
+		
+		for ( int j = 0; j < m_distSize; j++) {
+			transStatMat(i, j) = m_StateArray[i]->getTransitions(j);
+		}
+	}
+	
+	return Rcpp::List::create(	Rcpp::_["state_prob"] = stateProbVec,
+					Rcpp::_["trans_prob"] = transProbMat,
+					Rcpp::_["trans_stat"] = transStatMat);
+}
+
+
 ///////////////////////////////////////////////////////////////////////////
 // Function: AllStates::Grow
 // Purpose: enlarges array of states by 'INCREMENT' 

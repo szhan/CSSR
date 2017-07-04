@@ -18,6 +18,7 @@
 #include "Hash2.h"
 #include "TransTable.h"
 #include "Test.h"
+#include <Rcpp.h>
 
 
 //forward declarations
@@ -57,6 +58,8 @@ public:
     void CalcNewDist(int length, ParseTree &parsetree);
 
     void PrintOut(char input[], char alpha[]);
+
+	Rcpp::List PrintOutToR(char alpha[]);
 
     double Compare(int k, int j);
 
